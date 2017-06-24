@@ -1,0 +1,10 @@
+language: node_js
+
+node_js:
+  - '8'
+
+script: npm run test:ci
+
+notifications:
+  slack:
+    secure: CMll52OLqkopeADKqHKtB1tPrYayzvEzuxzeiETrWWpsXT6KfKhi+C3G/867d8WCkb9NWyPQYt0GuzF/NR+XUWuUwdYXkpk3Pz6HYu8I9MmfCbFFdPfbfCgm2CThvkEnUZ35yfB/KqxM/aAyNp3m/nIXjzITdUmgmj2wgBS4boo/Z5F31OXlebUz4P46hDB18bYVC1+HMjKgxhkTB4O0nVGKnVj+0zAxP5enK1C5eUd+ilW5V+PmVu6u/VwO5eBaX4cZggYRgTxQWX69s9S4KkcxOEUS+6/YIY8NLT9YfqSuMcK4KtVMtG8IcNTPNasXh8HpFKfc/b9hguLkldsIyUrv/xstB+op2urKdfDrFbWdac9ReV0uKfm6t6CCYDqwU5TcuvJahhf5JjoUCq/YYygPzCAq87lSWvKcsoCyPGEApH+KM++H2vG8D46/UEva2Qai4UEh4lSGKUQ8t34i5w6TarKA1Nkm5xg2npZ//4Y/rKfVMu6818ED6nojrV5JfRYNDdb0v+OCtsghBpCrQh/dueGETwqcF7UB6dMBM4lKCj6jXGX8Aolyu/lsimKbmf7piQJtkaDuR0ICcCwnNSOl7aPNPJffEq9s972aEUKYf8zOctFhEj3vpMD0bnTT5d515P+bb1tSydMEQq2hOO4YGUyxi9GU9z8NtJXjn5k=
