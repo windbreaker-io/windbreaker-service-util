@@ -7,10 +7,10 @@
     "docker:start": "docker-compose up -d",
     "docker:stop": "docker-compose down",
     "pretest": "npm run lint",
-    "test": "npm run docker:start && sleep 10 && nyc ava test/unit test/integration --timeout 5000; npm run docker:stop",
-    "test:ci": "nyc ava test/unit test/integration --timeout 5000",
-    "test:unit": "nyc ava test/unit --timouet 5000",
-    "test:integration": "npm run docker:start && sleep 10 && nyc ava test/integration --timeout 5000; npm run docker:stop"
+    "test": "npm run docker:start && sleep 10 && nyc ava test/unit test/integration; npm run docker:stop",
+    "test:ci": "nyc ava test/unit test/integration",
+    "test:unit": "nyc ava test/unit",
+    "test:integration": "npm run docker:start && sleep 10 && nyc ava test/integration; npm run docker:stop"
   },
   "repository": {
     "type": "git",
