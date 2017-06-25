@@ -4,11 +4,13 @@
   "description": "Windbreaker service utilities",
   "scripts": {
     "lint": "eslint .",
+    "docker:start": "docker-compose up -d",
+    "docker:stop": "docker-compose down",
     "pretest": "npm run lint",
-    "test": "nyc ava test/unit test/integration",
+    "test": "npm run docker:start && sleep 10 && nyc ava test/unit test/integration; npm run docker:stop",
     "test:ci": "nyc ava test/unit test/integration",
     "test:unit": "nyc ava test/unit",
-    "test:integration": "nyc ava test/integration"
+    "test:integration": "npm run docker:start && sleep 10 && nyc ava test/integration; npm run docker:stop"
   },
   "repository": {
     "type": "git",
@@ -27,13 +29,17 @@
   },
   "homepage": "https://github.com/windbreaker-io/windbreaker-service-util#readme",
   "dependencies": {
+    "amqplib": "^0.5.1",
     "bunyan": "^1.8.10",
     "bunyan-prettystream": "^0.1.3",
     "cluster-master": "^0.2.1",
+    "conflogger": "^1.0.4",
     "fashion-model": "^5.0.19",
     "fashion-model-defaults": "^1.0.1",
     "js-yaml": "^3.8.4",
-    "msgpack-lite": "^0.1.26"
+    "msgpack-lite": "^0.1.26",
+    "tri": "^1.0.2",
+    "uuid": "^3.1.0"
   },
   "devDependencies": {
     "ava": "^0.19.1",
