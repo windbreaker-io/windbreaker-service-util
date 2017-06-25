@@ -16,14 +16,14 @@ function _restartConsumer (createConsumerOptions) {
 
   setTimeout(async () => {
     try {
-      await createConnection(createConsumerOptions)
+      await createConsumer(createConsumerOptions)
     } catch (err) {
       throw new Error('Error restarting event consumer', err)
     }
   }, reconnectTimeout)
 }
 
-module.exports = async function createConsumer (options) {
+const createConsumer = module.exports = async function (options) {
   let {
     logger,
     amqUrl,

@@ -12,7 +12,7 @@ const QueueConsumer = require('~/queue/QueueConsumer')
 
 const waitForEvent = require('~/test/util/waitForEvent')
 
-const AMQ_URL = 'amqp://localhost:5672'
+const AMQ_URL = 'amqp://localhost'
 
 const TEST_PREFETCH_LIMIT = 2
 

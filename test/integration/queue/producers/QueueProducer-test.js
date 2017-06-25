@@ -14,7 +14,7 @@ const messageParser = require('~/queue/util/message-parser')
 
 const waitForEvent = require('~/test/util/waitForEvent')
 
-const AMQ_URL = 'amqp://localhost:5672'
+const AMQ_URL = 'amqp://localhost'
 
 function isEncodedMessage (t, message, testMessage) {
   return typeof t.deepEqual(messageParser.decode(message.content), testMessage) === 'undefined'

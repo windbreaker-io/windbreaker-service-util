@@ -9,7 +9,7 @@ const CONNECTION_ATTEMPT_OPTIONS = {
   jitter: true
 }
 
-module.exports = async function creatConnection (options) {
+module.exports = async function createConnection (options) {
   let {
     logger,
     amqUrl,
