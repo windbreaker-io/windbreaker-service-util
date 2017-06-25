@@ -38,6 +38,7 @@
     "fashion-model-defaults": "^1.0.1",
     "js-yaml": "^3.8.4",
     "msgpack-lite": "^0.1.26",
+    "proxyquire": "^1.8.0",
     "tri": "^1.0.2",
     "uuid": "^3.1.0"
   },

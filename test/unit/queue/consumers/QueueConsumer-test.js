@@ -7,8 +7,8 @@ const test = require('ava')
 const sinon = require('sinon')
 
 const QueueConsumer = require('~/queue/QueueConsumer')
-const MockChannel = require('~/test/util/MockChannel')
-const MockConnection = require('~/test/util/MockConnection')
+const MockChannel = require('~/test/util/mocks/MockChannel')
+const MockConnection = require('~/test/util/mocks/MockConnection')
 
 const testQueueName = 'some-queue'
 const testMessage = { foo: 'bar' }
