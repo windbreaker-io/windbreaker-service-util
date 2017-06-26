@@ -28,6 +28,13 @@
     "url": "https://github.com/windbreaker-io/windbreaker-service-util/issues"
   },
   "homepage": "https://github.com/windbreaker-io/windbreaker-service-util#readme",
+  "config": {
+    "branchNameCommitModifier": {
+      "preChar": "[",
+      "postChar": "]",
+      "projectName": "WB"
+    }
+  },
   "dependencies": {
     "amqplib": "^0.5.1",
     "bunyan": "^1.8.10",
@@ -43,6 +50,7 @@
   },
   "devDependencies": {
     "ava": "^0.19.1",
+    "branch-name-commit-modifier": "^2.0.1",
     "eslint": "^4.0.0",
     "eslint-config-standard": "^10.2.1",
     "eslint-plugin-import": "^2.3.0",
