@@ -30,8 +30,6 @@
   "homepage": "https://github.com/windbreaker-io/windbreaker-service-util#readme",
   "config": {
     "branchNameCommitModifier": {
-      "preChar": "[",
-      "postChar": "]",
       "projectName": "WB"
     }
   },
