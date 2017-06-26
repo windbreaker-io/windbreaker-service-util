@@ -32,7 +32,6 @@ test('should throw an error if now queueName is provided', async (t) => {
     })
     t.fail()
   } catch (err) {
-    console.log('!!!!!!!!!!!!!!!!!!!!!', err)
     t.truthy(err)
   }
 })
