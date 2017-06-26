@@ -7,8 +7,11 @@ const test = require('ava')
 const sinon = require('sinon')
 
 const QueueProducer = require('~/queue/QueueProducer')
-const MockChannel = require('~/test/util/MockChannel')
-const MockConnection = require('~/test/util/MockConnection')
+const MockChannel = require('~/test/util/mocks/MockChannel')
+const MockConnection = require('~/test/util/mocks/MockConnection')
+
+const proxyquire = require('proxyquire')
+proxyquire.noPreserveCache()
 
 const testQueueName = 'some-queue'
 
@@ -43,6 +46,12 @@ test('should generate a _tag based off of the queue name', (t) => {
 
   t.true(tag !== null)
   t.true(tag.startsWith(`${testQueueName}-producer-`))
+})
+
+test('"getConnection" should return the connection that was passed in', async (t) => {
+  const { connection, producer } = t.context
+
+  t.is(producer.getConnection(), connection)
 })
 
 /**
@@ -194,5 +203,35 @@ test('should not throw error if channel is already closed', async (t) => {
     t.pass()
   } catch (err) {
     t.fail(err.message)
+  }
+})
+
+test('should throw error if unable to parse message', async (t) => {
+  const { connection, sandbox } = t.context
+  const messageParser = {
+    encode: Promise.reject
+  }
+
+  const message = 'some-message'
+
+  const QueueProducer = proxyquire('~/queue/QueueProducer', {
+    './util/message-parser': messageParser
+  })
+
+  const producer = new QueueProducer({
+    queueName: testQueueName,
+    connection,
+    logger: console
+  })
+
+  const mock = sandbox.mock(messageParser)
+  mock.expects('encode').throws().once()
+    .withArgs(message)
+
+  try {
+    await producer.sendMessage(message)
+  } catch (err) {
+    mock.verify()
+    t.pass(err)
   }
 })

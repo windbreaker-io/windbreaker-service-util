@@ -9,7 +9,11 @@ module.exports = async function createProducer (options) {
     producerOptions
   } = options || {}
 
-  producerOptions = producerOptions || {}
+  const queueName = producerOptions && producerOptions.queueName
+
+  if (!queueName) {
+    throw new Error(`createConsumer is expecting a "queueName" in "producerOptions"`)
+  }
 
   const amqConnection = await createConnection({
     logger,
@@ -18,12 +22,6 @@ module.exports = async function createProducer (options) {
   })
 
   logger = conflogger.configure(logger)
-
-  const queueName = producerOptions.queueName
-
-  if (!queueName) {
-    throw new Error(`createConsumer is expecting a "queueName" in "producerOptions"`)
-  }
 
   logger.info(`Attempting to create consumer with queue name "${queueName}"`)
 
