@@ -42,7 +42,7 @@ test.afterEach('clean up', (t) => {
 
 test('should generate a _tag based off of the queue name', (t) => {
   const { producer } = t.context
-  const tag = producer._tag
+  const tag = producer.getTag()
 
   t.true(tag !== null)
   t.true(tag.startsWith(`${testQueueName}-producer-`))

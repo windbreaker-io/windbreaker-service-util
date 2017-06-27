@@ -11,6 +11,10 @@ class BaseQueue extends EventEmitter {
     this._tag = tag
   }
 
+  getTag () {
+    return this._tag
+  }
+
   async cancelChannel () {
     return this._channel.cancel(this._tag)
   }

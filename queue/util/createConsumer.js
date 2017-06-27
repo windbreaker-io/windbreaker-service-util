@@ -2,28 +2,7 @@ const conflogger = require('conflogger')
 const QueueConsumer = require('../QueueConsumer')
 const createConnection = require('./createConnection')
 
-const DEFAULT_RECONNECT_TIMEOUT = 5000
-
-function _restartConsumer (createConsumerOptions) {
-  const reconnectTimeout = createConsumerOptions.reconnectTimeout || DEFAULT_RECONNECT_TIMEOUT
-  const consumerOptions = createConsumerOptions.consumerOptions
-
-  if (consumerOptions) {
-    // Dispose of the orignal connection object that was passed, so we can start
-    // with a fresh connection
-    delete consumerOptions.connection
-  }
-
-  setTimeout(async () => {
-    try {
-      await createConsumer(createConsumerOptions)
-    } catch (err) {
-      throw new Error('Error restarting event consumer', err)
-    }
-  }, reconnectTimeout)
-}
-
-const createConsumer = module.exports = async function (options) {
+module.exports = async function (options) {
   let {
     logger,
     amqUrl,
@@ -41,10 +20,14 @@ const createConsumer = module.exports = async function (options) {
 
   logger = conflogger.configure(logger)
 
-  const queueName = consumerOptions.queueName
+  const { queueName } = consumerOptions
 
   if (!queueName) {
     throw new Error(`createConsumer is expecting a "queueName" in "consumerOptions"`)
+  }
+
+  if (!onMessage) {
+    throw new Error('createConsumer is expecting a "onMessage" option')
   }
 
   logger.info(`Attempting to create consumer with queue name "${queueName}"`)
@@ -73,22 +56,21 @@ const createConsumer = module.exports = async function (options) {
     // TODO: Only restart this X number of times before stopping and reporting
     // back to the user that there was a fatal error. Otherwise, we may get stuck
     // in an infinite loop of trying to restart a consumer that will never start.
-    _restartConsumer(options)
   }
 
-  const _handleConnectionClosed = (err) => {
-    logger.error('Connection error', err)
-    _closeConsumer()
-  }
-
-  consumer.on('error', async (err) => {
+  consumer.once('error', async (err) => {
     logger.error('Consumer error', err)
     _closeConsumer()
   })
 
-  amqConnection.on('error', _handleConnectionClosed)
-  amqConnection.on('close', _handleConnectionClosed)
+  amqConnection.once('error', (err) => {
+    logger.error('Connection error', err)
+    consumer.emit('error', err)
+  })
 
   await consumer.start()
+
+  logger.info(`Consumer "${consumer.getTag()}" is now consuming on queue: ${queueName}`)
+
   return consumer
 }
