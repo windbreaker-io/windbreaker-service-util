@@ -1,6 +1,7 @@
 const conflogger = require('conflogger')
 const QueueConsumer = require('../QueueConsumer')
 const createConnection = require('./createConnection')
+const messageParser = require('./message-parser')
 
 module.exports = async function (options) {
   let {
@@ -38,7 +39,9 @@ module.exports = async function (options) {
 
   consumer.on('message', async (message) => {
     try {
-      await onMessage(message)
+      const content = messageParser.decode(message.content)
+
+      await onMessage(content)
       // acknowledge the message on success
       await consumer.acknowledgeMessage(message)
     } catch (err) {
