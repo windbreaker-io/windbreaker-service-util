@@ -11,10 +11,17 @@ const Promise = require('bluebird')
 const QueueProducer = require('~/queue/QueueProducer')
 const QueueConsumer = require('~/queue/QueueConsumer')
 const messageParser = require('~/queue/util/message-parser')
-
+const Event = require('~/models/events/Event')
 const waitForEvent = require('~/test/util/waitForEvent')
 
 const AMQ_URL = 'amqp://localhost'
+
+const testMessage = new Event({
+  type: 'github-push',
+  data: {
+    compare: 'abc123'
+  }
+})
 
 function isEncodedMessage (t, message, testMessage) {
   return typeof t.deepEqual(messageParser.decode(message.content), testMessage) === 'undefined'
@@ -69,7 +76,6 @@ test.afterEach('clean up connection and channel', async (t) => {
 })
 
 test('should be able to receive messages published on the queue', async (t) => {
-  const testMessage = { test: 1 }
   const { consumer, producer } = t.context
 
   await Promise.all([
@@ -83,7 +89,6 @@ test('should be able to receive messages published on the queue', async (t) => {
 })
 
 test('should be able to acknowledge a message sent by producer', async (t) => {
-  const testMessage = { test: 1 }
   const { consumer, producer } = t.context
 
   await producer.sendMessage(testMessage)
@@ -95,7 +100,6 @@ test('should be able to acknowledge a message sent by producer', async (t) => {
 })
 
 test('should be able to reject a message and receive it again', async (t) => {
-  const testMessage = { test: 2 }
   const { producer, consumer } = t.context
 
   await producer.sendMessage(testMessage)

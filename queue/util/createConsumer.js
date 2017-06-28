@@ -47,6 +47,8 @@ module.exports = async function (options) {
     } catch (err) {
       logger.error('Error handling message:', err)
 
+      // TODO: This needs more thought. If a message is continuously failing,
+      // we shouldn't keep requeuing
       // reject/requeue message
       await consumer.rejectMessage(message)
     }

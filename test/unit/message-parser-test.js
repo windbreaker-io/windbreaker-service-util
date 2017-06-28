@@ -3,15 +3,29 @@ require('require-self-ref')
 const test = require('ava')
 const msgpack = require('msgpack-lite')
 const messageParser = require('~/queue/util/message-parser')
+const Event = require('~/models/events/Event')
 
-test('should properly encode a message', (t) => {
-  const encoded = messageParser.encode({ hello: 'world' })
-  t.deepEqual(encoded, msgpack.encode({ hello: 'world' }))
+const testEvent = {
+  type: 'github-push',
+  data: {
+    compare: 'abc123'
+  }
+}
+
+test('should encode a message that is already cleaned', (t) => {
+  const encoded = messageParser.encode(testEvent)
+  t.deepEqual(encoded, msgpack.encode(testEvent))
 })
 
-test('should properly decode a message', (t) => {
-  const original = { hello: 'world' }
-  const encoded = messageParser.encode(original)
+test('should encode a model', (t) => {
+  const event = new Event(testEvent)
+  const encoded = messageParser.encode(event)
+  t.deepEqual(encoded, msgpack.encode(testEvent))
+})
+
+test('should decode message and wrap it in an Event', (t) => {
+  const event = new Event(testEvent)
+  const encoded = messageParser.encode(event)
   const decoded = messageParser.decode(encoded)
-  t.deepEqual(decoded, original)
+  t.deepEqual(decoded.clean(), testEvent)
 })

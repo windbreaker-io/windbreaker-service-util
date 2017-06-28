@@ -7,6 +7,8 @@ proxyquire.noPreserveCache()
 
 const tri = require('tri')
 
+const Event = require('~/models/events/Event')
+const messageParser = require('~/queue/util/message-parser')
 const MockChannel = require('~/test/util/mocks/MockChannel')
 const MockConnection = require('~/test/util/mocks/MockConnection')
 
@@ -14,6 +16,15 @@ const TEST_AMQ_URL = 'test-amq-url'
 const TEST_QUEUE_NAME = 'test-queue-name'
 
 const createConsumer = require('~/queue/util/createConsumer')
+
+const testMessage = new Event({
+  type: 'github-push',
+  data: {
+    compare: 'abc123'
+  }
+})
+
+const encodedMessage = messageParser.encode(testMessage)
 
 test.beforeEach((t) => {
   const channel = new MockChannel()
@@ -169,12 +180,16 @@ test('should acknowledge a message if consumer receives a message', async (t) =>
     }
   })
 
-  const testMessage = { type: 'test' }
   const spy = sandbox.spy(consumer, 'acknowledgeMessage')
-  consumer.emit('message', testMessage)
+
+  const message = {
+    content: encodedMessage
+  }
+
+  consumer.emit('message', message)
 
   await tri(async () => {
-    return spy.calledWith(testMessage)
+    return spy.calledWith(message)
   }, { maxAttempts: 2, delay: 100 })
 
   t.pass()
@@ -183,21 +198,29 @@ test('should acknowledge a message if consumer receives a message', async (t) =>
 test('should reject a message if consumer receives a ' +
 'message but errors out', async (t) => {
   const { sandbox, connection } = t.context
+  let errorReceived
 
   const consumer = await createConsumer({
     amqUrl: TEST_AMQ_URL,
     logger: console,
-    onMessage: sandbox.stub().throws(),
+    onMessage () {
+      errorReceived = true
+      throw new Error('This message should be rejected')
+    },
     consumerOptions: {
       queueName: TEST_QUEUE_NAME,
       connection
     }
   })
 
-  const testMessage = { type: 'test' }
   const spy = sandbox.spy(consumer, 'rejectMessage')
 
-  consumer.emit('message', testMessage)
+  const message = {
+    content: encodedMessage
+  }
 
-  t.true(spy.calledWith(testMessage))
+  consumer.emit('message', message)
+
+  t.true(spy.calledWith(message))
+  t.true(errorReceived)
 })

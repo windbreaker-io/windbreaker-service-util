@@ -9,12 +9,20 @@ const amqplib = require('amqplib')
 
 const sinon = require('sinon')
 
+const Event = require('~/models/events/Event')
 const QueueProducer = require('~/queue/QueueProducer')
 const createManagedConsumer = require('~/queue/util/createManagedConsumer')
 
 const waitForEvent = require('~/test/util/waitForEvent')
 
 const AMQ_URL = 'amqp://localhost'
+
+const testMessage = new Event({
+  type: 'github-push',
+  data: {
+    compare: 'abc123'
+  }
+})
 
 test.beforeEach('initialize producer', async (t) => {
   const queueName = `queue-${uuid.v4()}`
@@ -55,7 +63,6 @@ test.afterEach.always('ensure consumer teardown', async (t) => {
 
 test('should be able to handle incoming message from a producer', async (t) => {
   const { queueName, producer } = t.context
-  const testMessage = { foo: 'bar' }
 
   const spy = sinon.spy()
 
@@ -80,5 +87,11 @@ test('should be able to handle incoming message from a producer', async (t) => {
   sinon.assert.calledOnce(spy)
 
   const receivedMessage = spy.firstCall.args[0]
-  t.deepEqual(receivedMessage, testMessage)
+  t.deepEqual(receivedMessage.clean(), testMessage.clean())
+
+  let errors = []
+  receivedMessage.convertData(errors)
+
+  t.is(errors.length, 0)
+  t.is(receivedMessage.getData().getCompare(), 'abc123')
 })
