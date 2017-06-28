@@ -29,6 +29,10 @@ module.exports = async function createProducer (options) {
     connection: amqConnection
   }, producerOptions))
 
+  amqConnection.on('error', (err) => {
+    producer.emit('error', err)
+  })
+
   await producer.start()
   return producer
 }

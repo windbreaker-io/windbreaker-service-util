@@ -8,14 +8,17 @@ proxyquire.noPreserveCache()
 
 const MockChannel = require('~/test/util/mocks/MockChannel')
 const MockConnection = require('~/test/util/mocks/MockConnection')
+const waitForEvent = require('~/test/util/waitForEvent')
 const createProducer = require('~/queue/util/createProducer')
 
 const TEST_AMQ_URL = 'amqp:localhost'
 const TEST_QUEUE_NAME = 'amqp-test-queue'
 
 test.beforeEach((t) => {
+  const connection = new MockConnection(new MockChannel())
   t.context = {
-    sandbox: sinon.sandbox.create()
+    sandbox: sinon.sandbox.create(),
+    connection
   }
 })
 
@@ -107,5 +110,31 @@ test('should throw an error if a producer cannot start', async (t) => {
     }
   })
 
+  t.pass()
+})
+
+test('should emit an error if connection emits an error', async (t) => {
+  const { connection } = t.context
+
+  const producer = await createProducer({
+    logger: console,
+    amqUrl: TEST_AMQ_URL,
+    producerOptions: {
+      queueName: TEST_QUEUE_NAME,
+      connection
+    }
+  })
+
+  const errorEventsPromise = Promise.all([
+    waitForEvent(producer, 'error', (err) => {
+      return err.message === 'test error'
+    }),
+    waitForEvent(connection, 'error', (err) => {
+      return err.message === 'test error'
+    })
+  ])
+
+  connection.emit('error', new Error('test error'))
+  await errorEventsPromise
   t.pass()
 })
