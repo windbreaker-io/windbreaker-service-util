@@ -137,3 +137,40 @@ test('should enforce the prefetch limit on the consumer\'s channel', async (t) =
     t.truthy(err instanceof Promise.TimeoutError)
   }
 })
+
+test('should return unacknowledged message to queue if a consumer stops consuming without ' +
+'acknowledging a message', async (t) => {
+  t.plan(0)
+  const { connection, channel, consumer, queueName } = t.context
+
+  const testMessage = JSON.stringify({ message: uuid.v4() })
+
+  // send the test message to the queue, wait for consumer to
+  // receive the message
+  await Promise.all([
+    waitForEvent(consumer, 'message', (message) => {
+      return message.content.toString() === testMessage
+    }),
+    channel.sendToQueue(queueName, Buffer.from(testMessage))
+  ])
+
+  // stop consumer
+  await consumer.stop()
+
+  const newConsumer = new QueueConsumer({
+    queueName,
+    connection,
+    logger: console,
+    prefetchCount: TEST_PREFETCH_LIMIT
+  })
+
+  await newConsumer.start()
+
+  await Promise.all([
+    waitForEvent(newConsumer, 'message', (message) => {
+      return message.content.toString() === testMessage
+    })
+  ]).timeout(2000)
+
+  return newConsumer.stop()
+})
