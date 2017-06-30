@@ -10,6 +10,18 @@ module.exports = class MockChannel extends EventEmitter {
     return Promise.resolve()
   }
 
+  bindQueue (queueName, exchange) {
+    return Promise.resolve()
+  }
+
+  assertExchange (exchange, options) {
+    return Promise.resolve()
+  }
+
+  sendToQueue (queueName, message, options) {
+    return Promise.resolve()
+  }
+
   prefetch (prefetchValue) {
     return Promise.resolve()
   }

@@ -216,7 +216,10 @@ test('should reject a message if consumer receives a ' +
   const spy = sandbox.spy(consumer, 'rejectMessage')
 
   const message = {
-    content: encodedMessage
+    content: encodedMessage,
+    properties: {
+      headers: {}
+    }
   }
 
   consumer.emit('message', message)

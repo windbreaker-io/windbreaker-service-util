@@ -15,6 +15,7 @@ const waitForEvent = require('~/test/util/waitForEvent')
 const AMQ_URL = 'amqp://localhost'
 
 const TEST_PREFETCH_LIMIT = 2
+const TEST_MAX_MESSAGE_REJECTIONS = 3
 
 test.beforeEach('initialize connection and channel', async (t) => {
   const queueName = `queue-${uuid.v4()}`
@@ -28,6 +29,7 @@ test.beforeEach('initialize connection and channel', async (t) => {
     queueName,
     connection,
     logger: console,
+    maxMessageRejections: TEST_MAX_MESSAGE_REJECTIONS,
     prefetchCount: TEST_PREFETCH_LIMIT
   })
 
@@ -90,12 +92,98 @@ test('should be able to reject a message and receive it again', async (t) => {
 
   await Promise.all([
     waitForEvent(consumer, 'message', (message) => {
+      t.is(message.properties.headers['x-death'][0].count, 1)
       return message.content.toString() === JSON.stringify(testMessage)
     }),
     consumer.rejectMessage(message)
   ])
 
   t.pass()
+})
+
+async function rejectMessagesBeforeMaxLimit (t, testMessage) {
+  const { queueName, consumer, channel } = t.context
+
+  await channel.sendToQueue(queueName, Buffer.from(testMessage))
+  let message = await waitForEvent(consumer, 'message', (message) => {
+    return message.content.toString() === testMessage
+  })
+
+  for (let i = 0; i < TEST_MAX_MESSAGE_REJECTIONS; i++) {
+    const messagePromise = waitForEvent(consumer, 'message', (message) => {
+      // assert that the header count is updating
+      t.is(message.properties.headers['x-death'][0].count, i + 1)
+      return message.content.toString() === testMessage
+    })
+
+    await consumer.rejectMessage(message)
+    message = await messagePromise
+  }
+
+  return message
+}
+
+test('should be able to reject a message and receive it the max number of' +
+'times retries are allowed', async (t) => {
+  const testMessage = JSON.stringify({ test: 1 })
+  await rejectMessagesBeforeMaxLimit(t, testMessage)
+
+  const { channel, consumer } = t.context
+
+  // ensure message doesn't make it to the dead letter queue
+  try {
+    await new Promise((resolve) => {
+      channel.consume(consumer.getDeadLetterQueueName(), (message) => {
+        resolve(message)
+      })
+    }).timeout(1000) // fail test if message is not received
+    t.fail()
+  } catch (err) {
+    t.true(err instanceof Promise.TimeoutError)
+  }
+})
+
+test('should push message into dead letter queue if message reaches ' +
+'reach max number of retries', async (t) => {
+  const testMessage = JSON.stringify({ test: 1 })
+  const lastMessage = await rejectMessagesBeforeMaxLimit(t, testMessage)
+
+  const { channel, consumer } = t.context
+
+  // ensure message got pushed to dead letter queue
+  const deadLetterPromise = new Promise((resolve) => {
+    channel.consume(consumer.getDeadLetterQueueName(), (message) => {
+      resolve(message)
+    })
+  }).timeout(1000) // fail test if message is not received (prevent hanging)
+
+  // reject the last message one last time
+  await consumer.rejectMessage(lastMessage)
+
+  const deadLetterMessage = await deadLetterPromise
+  t.is(deadLetterMessage.content.toString(), testMessage)
+  t.pass()
+})
+
+test('should should not recieve messages after pushing rejected message to ' +
+'dead letter queue', async (t) => {
+  const testMessage = JSON.stringify({ test: 1 })
+  const lastMessage = await rejectMessagesBeforeMaxLimit(t, testMessage)
+
+  const { consumer } = t.context
+
+  // reject the last message one last time
+  // and ensure that the consumer does not
+  // receive the message anymore
+  try {
+    await Promise.all([
+      waitForEvent(consumer, 'message'),
+      consumer.rejectMessage(lastMessage)
+    ]).timeout(1000)
+    t.fail()
+  } catch (err) {
+    t.true(err instanceof Promise.TimeoutError)
+  }
 })
 
 test('should close the channel when when stopping the consumer', async (t) => {

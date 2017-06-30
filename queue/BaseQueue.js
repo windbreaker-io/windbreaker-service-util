@@ -11,6 +11,10 @@ class BaseQueue extends EventEmitter {
     this._tag = tag
   }
 
+  getQueueName () {
+    return this._queueName
+  }
+
   getTag () {
     return this._tag
   }

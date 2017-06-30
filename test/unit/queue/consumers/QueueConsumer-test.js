@@ -10,8 +10,21 @@ const QueueConsumer = require('~/queue/QueueConsumer')
 const MockChannel = require('~/test/util/mocks/MockChannel')
 const MockConnection = require('~/test/util/mocks/MockConnection')
 
+const generateDeadLetterExchangeName =
+  require('~/queue/util/generateDeadLetterExchangeName')
+
 const testQueueName = 'some-queue'
-const testMessage = { foo: 'bar' }
+
+const TEST_MAX_MESSAGE_REJECTIONS = 1
+
+const testMessage = {
+  content: {
+    foo: 'bar'
+  },
+  properties: {
+    headers: {}
+  }
+}
 
 test.beforeEach('setup mock channel and connections', (t) => {
   const channel = new MockChannel(testQueueName)
@@ -19,6 +32,7 @@ test.beforeEach('setup mock channel and connections', (t) => {
   const consumer = new QueueConsumer({
     queueName: testQueueName,
     connection,
+    maxMessageRejections: TEST_MAX_MESSAGE_REJECTIONS,
     logger: console
   })
 
@@ -36,6 +50,12 @@ test.afterEach('clean up', (t) => {
   const { sandbox } = t.context
 
   sandbox.restore()
+})
+
+test('"getConnection" should return the connection that was passed in', async (t) => {
+  const { connection, consumer } = t.context
+
+  t.is(consumer.getConnection(), connection)
 })
 
 test('should generate a _tag based off of the queue name', (t) => {
@@ -69,14 +89,27 @@ test('should should create a channel using the given connection', async (t) => {
 
 test('should perform an assertion on the queue', async (t) => {
   const { channel, consumer, sandbox } = t.context
-  const mock = sandbox.mock(channel)
-
-  mock.expects('assertQueue').once()
-    .withArgs(testQueueName)
+  const spy = sandbox.spy(channel, 'assertQueue')
 
   await consumer.start()
 
-  mock.verify()
+  sandbox.assert.calledWith(spy, testQueueName)
+
+  sandbox.assert.calledWith(spy,
+    consumer.getDeadLetterQueueName())
+
+  t.pass()
+})
+
+test('should perform an assertion a dead letter exchange', async (t) => {
+  const { channel, consumer, sandbox } = t.context
+  const spy = sandbox.spy(channel, 'assertExchange')
+
+  await consumer.start()
+
+  sandbox.assert.calledWith(spy,
+    generateDeadLetterExchangeName(testQueueName))
+
   t.pass()
 })
 
@@ -173,10 +206,78 @@ test('should use channel to reject message', async (t) => {
   const { channel, consumer, sandbox } = t.context
   const mock = sandbox.mock(channel)
   mock.expects('nack').once()
-    .withArgs(testMessage)
+    .withArgs(testMessage, false, false)
 
   await consumer.start()
   await consumer.rejectMessage(testMessage)
+
+  mock.verify()
+  t.pass()
+})
+
+test('should use channel to nack if dead letter and retry ' +
+'is less than maxMessageRetries', async (t) => {
+  const { channel, consumer, sandbox } = t.context
+  const mock = sandbox.mock(channel)
+
+  const deadLetterMessage = {
+    content: {
+      foo: 'bar'
+    },
+    properties: {
+      headers: {
+        'x-death': [
+          {
+            reason: 'rejected',
+            count: TEST_MAX_MESSAGE_REJECTIONS - 1
+          }
+        ]
+      }
+    }
+  }
+
+  mock.expects('nack').once()
+    .withArgs(deadLetterMessage, false, false)
+
+  await consumer.start()
+  await consumer.rejectMessage(deadLetterMessage)
+
+  mock.verify()
+  t.pass()
+})
+
+test('should use channel to ack and send to dead letter queue ' +
+'if message is was rejected and retry ' +
+'is equal to maxMessageRetries', async (t) => {
+  const { channel, consumer, sandbox } = t.context
+  const mock = sandbox.mock(channel)
+
+  const deadLetterMessage = {
+    content: {
+      foo: 'bar'
+    },
+    properties: {
+      headers: {
+        'x-death': [
+          {
+            queue: consumer.getQueueName(),
+            reason: 'rejected',
+            count: TEST_MAX_MESSAGE_REJECTIONS
+          }
+        ]
+      }
+    }
+  }
+
+  mock.expects('sendToQueue').once()
+    .withArgs(consumer.getDeadLetterQueueName(), deadLetterMessage.content)
+
+  mock.expects('ack').once()
+    .withArgs(deadLetterMessage)
+
+  await consumer.start()
+  await consumer.rejectMessage(deadLetterMessage)
+
   mock.verify()
   t.pass()
 })
