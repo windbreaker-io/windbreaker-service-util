@@ -3,14 +3,15 @@
   "version": "0.0.1",
   "description": "Windbreaker service utilities",
   "scripts": {
-    "lint": "eslint .",
-    "docker:start": "docker-compose up -d",
+    "docker:build": "docker-compose build",
+    "docker:start": "docker-compose up rediscluster rabbitmq",
     "docker:stop": "docker-compose down",
-    "pretest": "npm run lint",
-    "test": "npm run docker:start && sleep 10 && nyc ava test/unit test/integration; npm run docker:stop",
-    "test:ci": "nyc ava test/unit test/integration",
+    "lint": "eslint .",
+    "test": "npm run docker:build && docker-compose run test && docker-compose down",
     "test:unit": "nyc ava test/unit",
-    "test:integration": "npm run docker:start && sleep 10 && nyc ava test/integration; npm run docker:stop"
+    "test:integration": "docker-compose run test npm run test:docker:integration",
+    "test:docker:ci": "npm run lint && nyc ava test/unit test/integration --verbose",
+    "test:docker:integration": "nyc ava test/unit test/integration --verbose"
   },
   "repository": {
     "type": "git",
@@ -42,6 +43,7 @@
     "conflogger": "^1.0.4",
     "fashion-model": "^5.0.19",
     "fashion-model-defaults": "^1.0.1",
+    "ioredis": "^3.1.1",
     "js-yaml": "^3.8.4",
     "knex": "^0.13.0",
     "lodash.get": "^4.4.2",
@@ -56,14 +58,14 @@
   "devDependencies": {
     "ava": "^0.20.0",
     "branch-name-commit-modifier": "^2.0.1",
-    "eslint": "^4.0.0",
+    "eslint": "^4.1.1",
     "eslint-config-standard": "^10.2.1",
     "eslint-plugin-import": "^2.3.0",
     "eslint-plugin-node": "^5.0.0",
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1",
     "git-hooks": "^1.1.8",
-    "nyc": "^11.0.2",
+    "nyc": "^11.0.3",
     "proxyquire": "^1.8.0",
     "require-self-ref": "^2.0.1",
     "sinon": "^2.3.5"

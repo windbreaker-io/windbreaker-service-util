@@ -1,18 +1,7 @@
-language: node_js
-
-node_js:
-  - '8'
-
 services:
   - docker
-  - rabbitmq
-  - postgresql
 
-before_script:
-  - psql -c "CREATE DATABASE windbreaker;" -U postgres
-  - psql -c "ALTER USER "postgres" WITH PASSWORD 'postgres';" -U postgres
-
-script: npm run test:ci
+script: docker-compose run test
 
 notifications:
   slack:

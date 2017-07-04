@@ -15,7 +15,7 @@ const createManagedConsumer = require('~/queue/util/createManagedConsumer')
 
 const waitForEvent = require('~/test/util/waitForEvent')
 
-const AMQ_URL = 'amqp://localhost'
+const AMQ_URL = 'amqp:rabbitmq'
 
 const testMessage = new Event({
   type: 'github-push',

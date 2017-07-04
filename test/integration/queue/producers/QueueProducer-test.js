@@ -14,7 +14,7 @@ const messageParser = require('~/queue/util/message-parser')
 const Event = require('~/models/events/Event')
 const waitForEvent = require('~/test/util/waitForEvent')
 
-const AMQ_URL = 'amqp://localhost'
+const AMQ_URL = 'amqp://rabbitmq'
 
 const testMessage = new Event({
   type: 'github-push',

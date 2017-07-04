@@ -28,7 +28,7 @@ test.before('initialize database', async (t) => {
     knexConfig: {
       client: 'pg',
       connection: {
-        host: '127.0.0.1',
+        host: 'postgres',
         user: 'postgres',
         password: 'postgres',
         database: 'windbreaker'
