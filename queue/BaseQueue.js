@@ -2,12 +2,15 @@ const EventEmitter = require('events')
 const conflogger = require('conflogger')
 
 class BaseQueue extends EventEmitter {
-  constructor ({queueName, connection, tag, logger}) {
+  constructor ({queueName, connection, tag, channel, logger}) {
     super()
     this._queueName = queueName
     this._connection = connection
     this._logger = conflogger.configure(logger)
-    this._channel = null
+    // The following is set for testing purposes, but should
+    // never be passed. The QueueConsumer and QueueProducer are
+    // responsible for setting the `channel` property
+    this._channel = channel
     this._tag = tag
   }
 
@@ -33,7 +36,8 @@ class BaseQueue extends EventEmitter {
         await this.cancelChannel()
         await this.closeChannel()
       } catch (err) {
-        this._logger.info('Error closing channel', err)
+        this._logger.error('Error closing channel', err)
+        throw err
       } finally {
         this._channel = null
       }
