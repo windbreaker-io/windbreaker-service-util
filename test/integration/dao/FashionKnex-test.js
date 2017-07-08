@@ -15,7 +15,7 @@ async function prepareDatabase (daoHelper) {
   return knex
     .schema
     .createTableIfNotExists(tableName, (table) => {
-      table.string('entityId').primary()
+      table.string('id').primary()
       table.string('type')
       table.string('name')
     })
@@ -45,11 +45,11 @@ test.after(async (t) => {
 })
 
 test('should insert into database', async (t) => {
-  const entityId = uuid.v4()
+  const id = uuid.v4()
   const name = 'John'
 
   const entity = new TestEntity({
-    entityId,
+    id,
     type: 'GITHUB',
     name
   })
@@ -57,25 +57,25 @@ test('should insert into database', async (t) => {
   const res = await daoHelper.insert(entity)
   const data = res[0]
 
-  t.is(data.entityId, entity.getEntityId())
+  t.is(data.id, entity.getId())
   t.is(data.name, entity.getName())
   t.is(data.type, entity.getType().name())
 })
 
 test('should insert raw data into database', async (t) => {
-  const entityId = uuid.v4()
+  const id = uuid.v4()
   const entity = {
-    entityId,
+    id,
     type: 'GITHUB'
   }
 
   const res = await daoHelper.insert(entity)
   const data = res[0]
-  t.is(data.entityId, entity.entityId)
+  t.is(data.id, entity.id)
   t.is(data.type, entity.type)
 })
 
-test('should generate entityId without passing', async (t) => {
+test('should generate id without passing', async (t) => {
   const entity = new TestEntity({
     type: 'GITHUB'
   })
@@ -83,7 +83,7 @@ test('should generate entityId without passing', async (t) => {
   const res = await daoHelper.insert(entity)
   const data = res[0]
 
-  t.true(assertUuid(data.entityId))
+  t.true(assertUuid(data.id))
   t.is(data.type, entity.getType().name())
   t.is(data.name, null)
 })
@@ -98,19 +98,19 @@ test('should only return inserted data requested if "returning" supplied', async
   t.is(data, 'GITHUB')
 })
 
-test('should find by entityId', async (t) => {
-  const entityId = uuid.v4()
+test('should find by id', async (t) => {
+  const id = uuid.v4()
   const name = 'John'
 
   const entity = new TestEntity({
-    entityId,
+    id,
     type: 'GITHUB',
     name
   })
 
   await daoHelper.insert(entity)
-  const res = await daoHelper.findById(entityId)
-  t.is(res.getEntityId(), entity.getEntityId())
+  const res = await daoHelper.findById(id)
+  t.is(res.getId(), entity.getId())
   t.is(res.getName(), entity.getName())
   t.is(res.getType().name(), entity.getType().name())
 })

@@ -5,22 +5,12 @@ module.exports = require('fashion-model').extend({
     /**
     * Id of the entity being stored in the database
     */
-    entityId: String
+    id: String
   },
 
   init () {
-    if (!this.getEntityId()) {
-      this.setEntityId(uuid.v4())
-    }
-  },
-
-  prototype: {
-    getId () {
-      return this.getEntityId()
-    },
-
-    setId (id) {
-      this.setEntityId(id)
+    if (!this.getId()) {
+      this.setId(uuid.v4())
     }
   }
 })

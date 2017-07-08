@@ -2,23 +2,16 @@ require('require-self-ref')
 
 const test = require('ava')
 const FashionKnex = require('~/dao/FashionKnex')
-const TestEntity = require('~/test/util/TestEntity')
 const dao = require('~/dao')
+const TestEntity = require('~/test/util/TestEntity')
+const mockKnex = require('~/test/util/mocks/MockKnex')
 
 test('should allow creating a FashionKnex instance', (t) => {
+  const knexConnection = mockKnex()
   const daoHelper = dao.createDaoHelper({
     modelType: TestEntity,
     logger: console,
-    knexConfig: {
-      client: 'pg',
-      connection: {
-        host: '127.0.0.1',
-        user: 'postgres',
-        password: 'postgres',
-        database: 'windbreaker'
-      },
-      debug: true
-    }
+    knexConnection
   })
 
   t.true(daoHelper instanceof FashionKnex)
