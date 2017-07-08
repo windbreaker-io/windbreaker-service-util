@@ -12,7 +12,7 @@ const QueueConsumer = require('~/queue/QueueConsumer')
 
 const waitForEvent = require('~/test/util/waitForEvent')
 
-const AMQ_URL = 'amqp://localhost'
+const AMQ_URL = 'amqp:rabbitmq'
 
 const TEST_PREFETCH_LIMIT = 2
 const TEST_MAX_MESSAGE_REJECTIONS = 3

@@ -1,4 +1,4 @@
-module.exports = async function (emitter, eventName, filterFunction) {
+module.exports = async function waitForEvent (emitter, eventName, filterFunction) {
   return new Promise((resolve) => {
     const handler = (event) => {
       if (filterFunction) {
