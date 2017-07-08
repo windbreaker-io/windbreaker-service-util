@@ -43,11 +43,13 @@
     "fashion-model": "^5.0.19",
     "fashion-model-defaults": "^1.0.1",
     "js-yaml": "^3.8.4",
+    "knex": "^0.13.0",
     "lodash.get": "^4.4.2",
     "lodash.keys": "^4.2.0",
     "lodash.set": "^4.3.2",
     "lodash.union": "^4.6.0",
     "msgpack-lite": "^0.1.26",
+    "pg": "^6.4.0",
     "tri": "^1.0.2",
     "uuid": "^3.1.0"
   },
