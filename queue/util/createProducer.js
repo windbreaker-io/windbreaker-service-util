@@ -23,7 +23,7 @@ module.exports = async function createProducer (options) {
 
   logger = conflogger.configure(logger)
 
-  logger.info(`Attempting to create consumer with queue name "${queueName}"`)
+  logger.info(`Attempting to create producer with queue name "${queueName}"`)
 
   const producer = new QueueProducer(Object.assign({
     connection: amqConnection
