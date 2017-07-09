@@ -41,7 +41,7 @@ exports.configure = function (options) {
 }
 
 exports.logger = function (fileModule) {
-  let fileName = (fileModule && fileModule.filename) || module.filename
+  let fileName = (fileModule && fileModule.filename) || module.parent.filename
   fileName = fileName.substring(projectRootPath.length)
 
   return logger.child({ fileName })
