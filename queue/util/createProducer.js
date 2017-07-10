@@ -12,7 +12,7 @@ module.exports = async function createProducer (options) {
   const queueName = producerOptions && producerOptions.queueName
 
   if (!queueName) {
-    throw new Error(`createConsumer is expecting a "queueName" in "producerOptions"`)
+    throw new Error(`createProducer is expecting a "queueName" in "producerOptions"`)
   }
 
   const amqConnection = await createConnection({
