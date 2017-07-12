@@ -1,7 +1,8 @@
 const EventEmitter = require('events')
-const _createRedisClient = require('./util/createRedisClient')
 const msgpack = require('msgpack-lite')
 const conflogger = require('conflogger')
+const _createRedisClient = require('./util/createRedisClient')
+const _getCleanArray = require('../models/util/getCleanArray')
 
 // default entry expiration time in seconds
 const DEFAULT_EXPIRATION = 86400
@@ -16,6 +17,8 @@ class Cache extends EventEmitter {
     this._onError = (err) => this.emit('error', err)
     this._onReconnecting = () => this.emit('reconnecting')
     this._onNodeError = (err) => this.emit('node-error', err)
+
+    this._nodes = _getCleanArray(nodes)
 
     const redisClient = this._redisClient =
       _createRedisClient(nodes, redisClientOptions)
