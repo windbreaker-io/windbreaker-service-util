@@ -9,6 +9,7 @@ proxyquire.noPreserveCache()
 const msgpack = require('msgpack-lite')
 const MockRedisClient = require('~/test/util/mocks/MockRedisClient')
 const Model = require('~/models/Model')
+const RedisClusterNodeConfig = require('~/models/cache/RedisClusterNodeConfig')
 
 const waitForEvent = require('~/test/util/waitForEvent')
 
@@ -43,7 +44,7 @@ test.beforeEach(async (t) => {
     }
   })
 
-  t.context = { mockClient, cache, sandbox, TestModel }
+  t.context = { mockClient, cache, sandbox, TestModel, Cache }
 })
 
 test.afterEach(async (t) => {
@@ -272,4 +273,22 @@ test('should reject if there was an error diconnecting after ' +
   } catch (err) {
     t.is(err, testError)
   }
+})
+
+test('should allow creating Cache using RedisClusterNodeConfig model', (t) => {
+  const { Cache } = t.context
+
+  let nodes = []
+
+  TEST_NODES.forEach((node) => {
+    nodes.push(new RedisClusterNodeConfig(node))
+  })
+
+  let cache = new Cache({
+    nodes,
+    logger: console,
+    defaultTtl: TEST_TTL
+  })
+
+  t.deepEqual(cache._nodes, TEST_NODES)
 })
