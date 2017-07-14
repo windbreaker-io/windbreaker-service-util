@@ -5,6 +5,7 @@ const uuid = require('uuid')
 const FashionKnex = require('~/dao/FashionKnex')
 const TestEntity = require('~/test/util/TestEntity')
 const assertUuid = require('~/test/util/assertUuid')
+const KnexConfig = require('~/models/dao/KnexConfig')
 
 let daoHelper
 
@@ -42,6 +43,43 @@ test.before('initialize database', async (t) => {
 
 test.after(async (t) => {
   await daoHelper.destroy()
+})
+
+test('should allow passing KnexConfig model', async (t) => {
+  const knexConfig = new KnexConfig({
+    client: 'pg',
+    connection: {
+      host: 'postgres',
+      user: 'postgres',
+      password: 'postgres',
+      database: 'windbreaker'
+    },
+    debug: true
+  })
+
+  let testDaoHelper = new FashionKnex({
+    modelType: TestEntity,
+    logger: console,
+    knexConfig
+  })
+
+  const id = uuid.v4()
+  const name = 'John'
+
+  const entity = new TestEntity({
+    id,
+    type: 'GITHUB',
+    name
+  })
+
+  const res = await testDaoHelper.insert(entity)
+  const data = res[0]
+
+  t.is(data.id, entity.getId())
+  t.is(data.name, entity.getName())
+  t.is(data.type, entity.getType().name())
+
+  await testDaoHelper.destroy()
 })
 
 test('should insert into database', async (t) => {
