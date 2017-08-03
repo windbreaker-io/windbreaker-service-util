@@ -4,7 +4,7 @@ const conflogger = require('conflogger')
 const _getTableName = require('./util/getTableName')
 
 function _clean (document) {
-  return Model.isModel(document)
+  return document && Model.isModel(document)
     ? Model.clean(document)
     : document
 }
@@ -18,6 +18,8 @@ class FashionKnex {
       knexConnection,
       knexConfig
     } = options
+
+    knexConfig = _clean(knexConfig)
 
     this._logger = conflogger.configure(logger)
     this._modelType = modelType
