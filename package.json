@@ -7,9 +7,9 @@
     "docker:start": "docker-compose up rediscluster rabbitmq",
     "docker:stop": "docker-compose down",
     "lint": "eslint .",
-    "test": "npm run docker:build && docker-compose run test && docker-compose down",
+    "test": "npm run docker:build && docker-compose run test; npm run docker:stop",
     "test:unit": "nyc ava test/unit",
-    "test:integration": "docker-compose run test npm run test:docker:integration",
+    "test:integration": "docker-compose run test npm run test:docker:integration; npm run docker:stop",
     "test:docker:ci": "npm run lint && nyc ava test/unit test/integration --verbose",
     "test:docker:integration": "nyc ava test/unit test/integration --verbose"
   },
