@@ -1,21 +1,46 @@
 require('require-self-ref')
 
 const test = require('ava')
+const Model = require('~/models/Model')
+const Enum = require('~/models/Enum')
 const ConvertDataMixin = require('~/models/util/convert-data-mixin')
 
-const MyEvent = require('~/models/Model').extend({
+const MyEvent = Model.extend({
   properties: {
     flag: Boolean
   }
 })
 
-const EventType = require('~/models/Enum').create({
-  values: {
-    'my-event': MyEvent
+const MyNonStrictEvent = Model.extend({
+  strict: false,
+  properties: {
+    flag: Boolean
   }
 })
 
-const Event = require('~/models/Model').extend({
+const Nested = Model.extend({
+  properties: {
+    bar: Boolean
+  }
+})
+
+const MyNonStrictNestedEvent = Model.extend({
+  strict: false,
+  properties: {
+    flag: Boolean,
+    nested: Nested
+  }
+})
+
+const EventType = Enum.create({
+  values: {
+    'my-event': MyEvent,
+    'my-non-strict-event': MyNonStrictEvent,
+    'my-non-strict-nested-event': MyNonStrictNestedEvent
+  }
+})
+
+const Event = Model.extend({
   mixins: [ConvertDataMixin],
   properties: {
     type: EventType,
@@ -119,4 +144,42 @@ test('should still wrap data if data is undefined', (t) => {
   t.is(errors.length, 0)
   t.is(typeof event.getData().getFlag(), 'undefined')
   t.is(typeof result.getFlag(), 'undefined')
+})
+
+test('should not throw wrap errors for model that has strict type false', (t) => {
+  const event = new Event({
+    type: 'my-non-strict-event',
+    data: {
+      flag: true,
+      randomProp: 'fail'
+    }
+  })
+
+  let errors = []
+  event.convertData(errors)
+
+  t.is(errors.length, 0)
+  t.is(event.getData().getFlag(), true)
+})
+
+test('should not throw wrap errors for model that has unknown sub-model properties and has strict type false', (t) => {
+  const event = new Event({
+    type: 'my-non-strict-nested-event',
+    data: {
+      flag: true,
+      nested: {
+        foo: true,
+        bar: true
+      }
+    }
+  })
+
+  let errors = []
+  event.convertData(errors)
+
+  const data = event.getData()
+
+  t.is(errors.length, 0)
+  t.is(data.getFlag(), true)
+  t.is(data.getNested().getBar(), true)
 })

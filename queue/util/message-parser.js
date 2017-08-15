@@ -18,5 +18,15 @@ exports.encode = function (message) {
 */
 exports.decode = function (message) {
   message = msgpack.decode(message)
-  return Event.wrap(message)
+
+  // Always report errors for Event model wrapping. These properties should
+  // always exist even if the underlying data in the Event is corrupt.
+  const errors = []
+  const event = Event.wrap(message, errors)
+
+  if (errors.length) {
+    throw new Error(`Error decoding event. Errors: "${errors.join(',')}"`)
+  }
+
+  return event
 }

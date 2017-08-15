@@ -29,3 +29,12 @@ test('should decode message and wrap it in an Event', (t) => {
   const decoded = messageParser.decode(encoded)
   t.deepEqual(decoded.clean(), testEvent)
 })
+
+test('should throw error for decoded event that errors on wrap', (t) => {
+  const encoded = msgpack.encode({
+    randomProp: 'fail'
+  })
+
+  const error = t.throws(() => messageParser.decode(encoded))
+  t.is(error.message, 'Error decoding event. Errors: "Unrecognized property: randomProp"')
+})
