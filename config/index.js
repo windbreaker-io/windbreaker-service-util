@@ -34,32 +34,31 @@ function printConfig (config) {
 *    ]
 *
 */
-module.exports = function ({ config, path: overridePath, overrides }) {
+module.exports = async function ({ config, path: overridePath, overrides }) {
   assert(!overrides || Array.isArray(overrides),
     'if present, overrides must be an array')
 
-  config.load = async function () {
-    if (config.applyDefaults) {
-      config.applyDefaults()
-    }
-
-    let allOverrides = {}
-    if (overridePath) {
-      const serviceEnv = BaseServiceConfig.getServiceEnvironment()
-      const env = (serviceEnv && serviceEnv.toLowerCase()) || 'localhost'
-      allOverrides = await confugu.load(path.join(overridePath, `${env}.yml`))
-    }
-
-    if (overrides) {
-      Object.assign(allOverrides, ...overrides)
-    }
-
-    for (const key in allOverrides) {
-      config.set(key, allOverrides[key])
-    }
-
-    printConfig(config)
-    // force config to be immutable
-    Object.freeze(config)
+  if (config.applyDefaults) {
+    config.applyDefaults()
   }
+
+  let allOverrides = {}
+  if (overridePath) {
+    const serviceEnv = BaseServiceConfig.getServiceEnvironment()
+    const env = (serviceEnv && serviceEnv.toLowerCase()) || 'localhost'
+    allOverrides = await confugu.load(path.join(overridePath, `${env}.yml`))
+  }
+
+  if (overrides) {
+    Object.assign(allOverrides, ...overrides)
+  }
+
+  for (const key in allOverrides) {
+    config.set(key, allOverrides[key])
+  }
+
+  printConfig(config)
+  // force config to be immutable
+  Object.freeze(config)
+  return config
 }
