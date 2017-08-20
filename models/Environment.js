@@ -1,6 +1,7 @@
 module.exports = require('./Enum').create({
   values: [
-    'DEVELOPMENT',
+    'LOCALHOST',
     'PRODUCTION'
-  ]
+  ],
+  autoUpperCase: true
 })

@@ -7,5 +7,5 @@ module.exports = require('./Enum').create({
     'DEBUG',
     'TRACE'
   ],
-  autoLowerCase: true
+  autoUpperCase: true
 })

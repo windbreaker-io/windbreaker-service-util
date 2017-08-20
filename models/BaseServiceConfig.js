@@ -14,13 +14,13 @@ let BaseServiceConfig = module.exports = require('./Model').extend({
     environment: {
       type: Environment,
       description: 'The current service environment',
-      default: Environment.DEVELOPMENT
+      default: Environment.LOCALHOST
     },
     loggingColorsEnabled: {
       type: Boolean,
       description: 'Whether logging colors should be enabled or not',
       default: function () {
-        return this.getEnvironment().isDevelopment()
+        return this.getEnvironment().isLocalhost()
       }
     }
   }
