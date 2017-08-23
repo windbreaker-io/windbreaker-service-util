@@ -21,7 +21,7 @@ const ConfigDefaults = Config.extend({
 })
 
 test.beforeEach(t => {
-  t.context.registerConfig = proxyquire('~/config', {
+  t.context.configUtil = proxyquire('~/config', {
     confugu: {
       load: sinon.stub().resolves({})
     }
@@ -33,7 +33,7 @@ test('should register config when called', async t => {
     colors: false
   })
 
-  await t.context.registerConfig({ config })
+  await t.context.configUtil.load({ config })
 
   t.deepEqual(config.clean(), {
     colors: false
@@ -43,7 +43,7 @@ test('should register config when called', async t => {
 test('should apply defaults to a model that has the defaults mixin', async t => {
   const config = new ConfigDefaults()
 
-  await t.context.registerConfig({ config })
+  await t.context.configUtil.load({ config })
 
   t.deepEqual(config.clean(), {
     colors: true
@@ -53,7 +53,7 @@ test('should apply defaults to a model that has the defaults mixin', async t => 
 test('should allow passing array of overrides', async t => {
   const config = new ConfigDefaults()
 
-  await t.context.registerConfig({
+  await t.context.configUtil.load({
     config,
     overrides: [
       {
@@ -73,7 +73,7 @@ test('should allow passing array of overrides', async t => {
 
 test('should enforce overrides being undefined or array', async t => {
   const config = new ConfigDefaults()
-  const thrownError = await t.throws(t.context.registerConfig(
+  const thrownError = await t.throws(t.context.configUtil.load(
     {
       config,
       path: 'tomorrowland/2018/is/happening',
@@ -86,18 +86,18 @@ test('should enforce overrides being undefined or array', async t => {
 
 test('should allow config directory to be omitted', async t => {
   const config = new ConfigDefaults()
-  await t.context.registerConfig({ config, overrides: [ { colors: true } ] })
+  await t.context.configUtil.load({ config, overrides: [ { colors: true } ] })
   t.pass()
 })
 
 test('should allow overrides to be omitted', async t => {
   const config = new ConfigDefaults()
-  await t.context.registerConfig({ config, path: 'tomorrowland/2018/is/happening' })
+  await t.context.configUtil.load({ config, path: 'tomorrowland/2018/is/happening' })
   t.pass()
 })
 
 test('should allow overrides and config directory to be omitted', async t => {
   const config = new ConfigDefaults()
-  await t.context.registerConfig({ config })
+  await t.context.configUtil.load({ config })
   t.pass()
 })

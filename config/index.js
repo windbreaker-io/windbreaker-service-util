@@ -16,9 +16,7 @@ function printConfig (config) {
 }
 
 /**
-* Patches the `Config` model instance to contain a `load` function, which can
-* be called when the config is ready to be loaded. Service environment env
-* variable must be set to load non-default config file.
+* Service environment env variable must be set to load non-default config file.
 *
 * @param obj.config {Config} - Instance of the `Config` model
 * @param obj.path {string} - Absolute path to config directory
@@ -34,7 +32,7 @@ function printConfig (config) {
 *    ]
 *
 */
-module.exports = async function ({ config, path: overridePath, overrides }) {
+exports.load = async function load ({ config, path: overridePath, overrides }) {
   assert(!overrides || Array.isArray(overrides),
     'if present, overrides must be an array')
 
