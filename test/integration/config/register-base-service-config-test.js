@@ -2,7 +2,7 @@ require('require-self-ref')
 
 const { test } = require('ava')
 const path = require('path')
-const registerConfig = require('~/config')
+const configUtil = require('~/config')
 const BaseServiceConfig = require('~/models/BaseServiceConfig')
 
 test.beforeEach('store environment', t => {
@@ -17,9 +17,7 @@ test.afterEach('restore environment', t => {
 test('should load expected default service config values when calling "load"', async t => {
   const config = new BaseServiceConfig()
 
-  registerConfig({ config })
-
-  await config.load()
+  await configUtil.load({ config })
 
   t.deepEqual(config.clean(), {
     logLevel: 'INFO',
@@ -31,12 +29,10 @@ test('should load expected default service config values when calling "load"', a
 test('should load overrides arg when calling "load"', async t => {
   const config = new BaseServiceConfig()
 
-  registerConfig({
+  await configUtil.load({
     config,
     overrides: [ { loggingColorsEnabled: false } ]
   })
-
-  await config.load()
 
   t.deepEqual(config.clean(), {
     logLevel: 'INFO',
@@ -49,12 +45,10 @@ test('should load overrides file when calling "load"', async t => {
   const config = new BaseServiceConfig()
   process.env.SERVICE_ENVIRONMENT = 'production'
 
-  registerConfig({
+  await configUtil.load({
     config,
     path: path.resolve(__dirname, './fixtures')
   })
-
-  await config.load()
 
   t.deepEqual(config.clean(), {
     logLevel: 'INFO',
@@ -66,12 +60,10 @@ test('should load overrides file when calling "load"', async t => {
 test('should load default localhost config file when calling "load"', async t => {
   const config = new BaseServiceConfig()
 
-  registerConfig({
+  await configUtil.load({
     config,
     path: path.resolve(__dirname, './fixtures')
   })
-
-  await config.load()
 
   t.deepEqual(config.clean(), {
     logLevel: 'ERROR',
@@ -85,12 +77,10 @@ test('should load overrides file and inject env vars when calling "load"', async
   process.env.SERVICE_ENVIRONMENT = 'production-env'
   process.env.LOGGING_COLORS_ENABLED = false
 
-  registerConfig({
+  await configUtil.load({
     config,
     path: path.resolve(__dirname, './fixtures')
   })
-
-  await config.load()
 
   t.deepEqual(config.clean(), {
     logLevel: 'INFO',
@@ -103,7 +93,7 @@ test('should prefer overrides arg over file when calling "load"', async t => {
   const config = new BaseServiceConfig()
   process.env.SERVICE_ENVIRONMENT = 'production'
 
-  registerConfig({
+  await configUtil.load({
     config,
     path: path.resolve(__dirname, './fixtures'),
     overrides: [
@@ -112,8 +102,6 @@ test('should prefer overrides arg over file when calling "load"', async t => {
       }
     ]
   })
-
-  await config.load()
 
   t.deepEqual(config.clean(), {
     logLevel: 'INFO',

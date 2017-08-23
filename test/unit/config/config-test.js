@@ -1,7 +1,8 @@
 require('require-self-ref')
 
 const { test } = require('ava')
-const registerConfig = require('~/config')
+const proxyquire = require('proxyquire')
+const sinon = require('sinon')
 const DefaultsMixin = require('fashion-model-defaults')
 
 const configOptions = {
@@ -19,20 +20,20 @@ const ConfigDefaults = Config.extend({
   mixins: [DefaultsMixin]
 })
 
-test('should add "load" function to config instance', t => {
-  const config = new Config()
-  registerConfig({ config })
-  t.is(typeof config.load, 'function')
+test.beforeEach(t => {
+  t.context.configUtil = proxyquire('~/config', {
+    confugu: {
+      load: sinon.stub().resolves({})
+    }
+  })
 })
 
-test('should load config when calling "load"', async t => {
+test('should register config when called', async t => {
   const config = new Config({
     colors: false
   })
 
-  registerConfig({ config })
-
-  await config.load()
+  await t.context.configUtil.load({ config })
 
   t.deepEqual(config.clean(), {
     colors: false
@@ -42,9 +43,7 @@ test('should load config when calling "load"', async t => {
 test('should apply defaults to a model that has the defaults mixin', async t => {
   const config = new ConfigDefaults()
 
-  registerConfig({ config })
-
-  await config.load()
+  await t.context.configUtil.load({ config })
 
   t.deepEqual(config.clean(), {
     colors: true
@@ -54,7 +53,7 @@ test('should apply defaults to a model that has the defaults mixin', async t => 
 test('should allow passing array of overrides', async t => {
   const config = new ConfigDefaults()
 
-  registerConfig({
+  await t.context.configUtil.load({
     config,
     overrides: [
       {
@@ -66,42 +65,39 @@ test('should allow passing array of overrides', async t => {
     ]
   })
 
-  await config.load()
-
   t.deepEqual(config.clean(), {
     colors: false,
     environment: 'PRODUCTION'
   })
 })
 
-test('should enforce overrides being undefined or array', t => {
+test('should enforce overrides being undefined or array', async t => {
   const config = new ConfigDefaults()
-  const boundRegister = registerConfig.bind(null,
+  const thrownError = await t.throws(t.context.configUtil.load(
     {
       config,
       path: 'tomorrowland/2018/is/happening',
       overrides: { this: 'shouldFail' }
     }
-  )
+  ))
 
-  const thrownError = t.throws(boundRegister)
   t.is(thrownError.message, 'if present, overrides must be an array')
 })
 
-test('should allow config directory to be omitted', t => {
+test('should allow config directory to be omitted', async t => {
   const config = new ConfigDefaults()
-  registerConfig({ config, overrides: [ { this: 'shouldPass' } ] })
+  await t.context.configUtil.load({ config, overrides: [ { colors: true } ] })
   t.pass()
 })
 
-test('should allow overrides to be omitted', t => {
+test('should allow overrides to be omitted', async t => {
   const config = new ConfigDefaults()
-  registerConfig({ config, path: 'tomorrowland/2018/is/happening' })
+  await t.context.configUtil.load({ config, path: 'tomorrowland/2018/is/happening' })
   t.pass()
 })
 
-test('should allow overrides and config directory to be omitted', t => {
+test('should allow overrides and config directory to be omitted', async t => {
   const config = new ConfigDefaults()
-  registerConfig({ config })
+  await t.context.configUtil.load({ config })
   t.pass()
 })
