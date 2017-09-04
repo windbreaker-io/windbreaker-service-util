@@ -41,7 +41,7 @@
     "bunyan-prettystream": "^0.1.3",
     "cluster-master": "^0.2.1",
     "conflogger": "^1.0.4",
-    "confugu": "0.0.1",
+    "confugu": "^0.1.0",
     "fashion-model": "^5.0.19",
     "fashion-model-defaults": "^1.0.1",
     "ioredis": "^3.1.1",
