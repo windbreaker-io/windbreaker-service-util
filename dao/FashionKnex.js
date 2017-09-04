@@ -75,6 +75,18 @@ class FashionKnex {
     return wrapped
   }
 
+  async deleteById (id) {
+    const deleteResponse = await this._knex(this._tableName)
+      .del()
+      .where('id', id)
+
+    if (deleteResponse === 0) {
+      throw new Error(`Could not delete object with id "${id}" because it does not exist`)
+    }
+
+    return deleteResponse
+  }
+
   async destroy () {
     return this._knex.destroy()
   }

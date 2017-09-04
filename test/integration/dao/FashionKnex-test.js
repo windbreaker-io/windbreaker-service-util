@@ -153,6 +153,36 @@ test('should find by id', async (t) => {
   t.is(res.getType().name(), entity.getType().name())
 })
 
+test('should delete by id', async (t) => {
+  const id = uuid.v4()
+  const name = 'John'
+
+  const entity = new TestEntity({
+    id,
+    type: 'GITHUB',
+    name
+  })
+
+  await daoHelper.insert(entity)
+  const res = await daoHelper.findById(id)
+
+  t.is(res.getId(), entity.getId())
+  t.is(res.getName(), entity.getName())
+  t.is(res.getType().name(), entity.getType().name())
+
+  const deleteRes = await daoHelper.deleteById(entity.getId())
+  t.is(deleteRes, 1)
+
+  const afterDeleteFindRes = await daoHelper.findById(id)
+  t.is(afterDeleteFindRes, undefined)
+})
+
+test('should throw error when attempting to delete id that does not exist', async (t) => {
+  const id = uuid.v4()
+  const error = await t.throws(daoHelper.deleteById(id))
+  t.is(error.message, `Could not delete object with id "${id}" because it does not exist`)
+})
+
 test('should return table name', (t) => {
   t.is(daoHelper.getTableName(), 'testentity')
 })
