@@ -3,6 +3,7 @@ require('require-self-ref')
 const assert = require('assert')
 const confugu = require('confugu')
 const BaseServiceConfig = require('~/models/BaseServiceConfig')
+const Environment = require('~/models/Environment')
 const path = require('path')
 
 function printConfig (config) {
@@ -21,7 +22,6 @@ function applyOverrides (config, allOverrides, overrides) {
   }
 
   for (const key in allOverrides) {
-    // TODO: Consider checking if config.get(key) is undefined
     config.set(key, allOverrides[key])
   }
 
@@ -31,9 +31,24 @@ function applyOverrides (config, allOverrides, overrides) {
   return config
 }
 
-function getOverrideFilePath (overridePath) {
+function getOverrideFilePath (config, overridePath) {
   const serviceEnv = BaseServiceConfig.getServiceEnvironment()
-  const env = (serviceEnv && serviceEnv.toLowerCase()) || 'localhost'
+  let env
+
+  if (serviceEnv) {
+    const upperServiceEnv = serviceEnv.toUpperCase()
+
+    // Validate that the service environment variable provided
+    if (!Environment[upperServiceEnv]) {
+      throw new Error(`Service environment variable value provided is invalid ${serviceEnv}`)
+    }
+
+    env = serviceEnv.toLowerCase()
+  } else {
+    env = Environment.LOCALHOST.name().toLowerCase()
+  }
+
+  config.setEnvironment(env)
   return path.join(overridePath, `${env}.yml`)
 }
 
@@ -64,7 +79,7 @@ exports.load = async function load ({ config, path: overridePath, overrides }) {
 
   let allOverrides = {}
   if (overridePath) {
-    allOverrides = await confugu.load(getOverrideFilePath(overridePath))
+    allOverrides = await confugu.load(getOverrideFilePath(config, overridePath))
   }
 
   return applyOverrides(config, allOverrides, overrides)
@@ -97,7 +112,7 @@ exports.loadSync = function loadSync ({ config, path: overridePath, overrides })
 
   let allOverrides = {}
   if (overridePath) {
-    allOverrides = confugu.loadSync(getOverrideFilePath(overridePath))
+    allOverrides = confugu.loadSync(getOverrideFilePath(config, overridePath))
   }
 
   return applyOverrides(config, allOverrides, overrides)
