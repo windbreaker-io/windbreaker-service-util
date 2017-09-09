@@ -9,6 +9,7 @@ const EVENT_TYPE_NAMES = EventType.values.map((value) => {
 
 test('should have all expected event types', (t) => {
   t.deepEqual(EVENT_TYPE_NAMES, [
-    'github-push'
+    'github-push',
+    'dependency-update'
   ])
 })
