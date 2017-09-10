@@ -1,5 +1,3 @@
-require('require-self-ref')
-
 const test = require('ava')
 const FashionKnex = require('~/dao/FashionKnex')
 const dao = require('~/dao')

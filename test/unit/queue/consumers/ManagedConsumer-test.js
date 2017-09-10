@@ -1,8 +1,6 @@
 /**
  * QueueConsumer unit test
  */
-require('require-self-ref')
-
 const test = require('ava')
 const Promise = require('bluebird')
 const sinon = require('sinon')
