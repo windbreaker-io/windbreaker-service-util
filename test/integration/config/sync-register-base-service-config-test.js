@@ -17,7 +17,7 @@ test.afterEach('restore environment', t => {
 test('should load expected default service config values when calling "load"', t => {
   const config = new BaseServiceConfig()
 
-  configUtil.loadSync({ config })
+  configUtil.load({ config })
 
   t.deepEqual(config.clean(), {
     logLevel: 'INFO',
@@ -29,7 +29,7 @@ test('should load expected default service config values when calling "load"', t
 test('should load overrides arg when calling "load"', t => {
   const config = new BaseServiceConfig()
 
-  configUtil.loadSync({
+  configUtil.load({
     config,
     overrides: [ { loggingColorsEnabled: false } ]
   })
@@ -45,14 +45,14 @@ test('should load overrides file when calling "load"', t => {
   const config = new BaseServiceConfig()
   process.env.SERVICE_ENVIRONMENT = 'production'
 
-  configUtil.loadSync({
+  configUtil.load({
     config,
     path: path.resolve(__dirname, './fixtures')
   })
 
   t.deepEqual(config.clean(), {
     logLevel: 'INFO',
-    environment: 'LOCALHOST',
+    environment: 'PRODUCTION',
     loggingColorsEnabled: false
   })
 })
@@ -60,7 +60,7 @@ test('should load overrides file when calling "load"', t => {
 test('should load default localhost config file when calling "load"', t => {
   const config = new BaseServiceConfig()
 
-  configUtil.loadSync({
+  configUtil.load({
     config,
     path: path.resolve(__dirname, './fixtures')
   })
@@ -74,17 +74,17 @@ test('should load default localhost config file when calling "load"', t => {
 
 test('should load overrides file and inject env vars when calling "load"', t => {
   const config = new BaseServiceConfig()
-  process.env.SERVICE_ENVIRONMENT = 'production-env'
-  process.env.LOGGING_COLORS_ENABLED = false
+  process.env.SERVICE_ENVIRONMENT = 'PRODUCTION'
+  process.env.LOG_LEVEL = 'trace'
 
-  configUtil.loadSync({
+  configUtil.load({
     config,
     path: path.resolve(__dirname, './fixtures')
   })
 
   t.deepEqual(config.clean(), {
-    logLevel: 'INFO',
-    environment: 'LOCALHOST',
+    logLevel: 'TRACE',
+    environment: 'PRODUCTION',
     loggingColorsEnabled: false
   })
 })
@@ -93,7 +93,7 @@ test('should prefer overrides arg over file when calling "load"', t => {
   const config = new BaseServiceConfig()
   process.env.SERVICE_ENVIRONMENT = 'production'
 
-  configUtil.loadSync({
+  configUtil.load({
     config,
     path: path.resolve(__dirname, './fixtures'),
     overrides: [
@@ -105,7 +105,22 @@ test('should prefer overrides arg over file when calling "load"', t => {
 
   t.deepEqual(config.clean(), {
     logLevel: 'INFO',
-    environment: 'LOCALHOST',
+    environment: 'PRODUCTION',
     loggingColorsEnabled: true
   })
+})
+
+test('should throw error if invalid SERVICE_ENVIRONMENT value provided', async t => {
+  const INVALID_SERVICE_ENV = 'invalid_service_env'
+  const config = new BaseServiceConfig()
+  process.env.SERVICE_ENVIRONMENT = INVALID_SERVICE_ENV
+
+  const error = t.throws(() => {
+    configUtil.load({
+      config,
+      path: path.resolve(__dirname, './fixtures')
+    })
+  })
+
+  t.is(error.message, `Service environment variable value provided is invalid ${INVALID_SERVICE_ENV}`)
 })

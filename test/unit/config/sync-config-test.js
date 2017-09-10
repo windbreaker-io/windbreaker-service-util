@@ -23,7 +23,7 @@ const ConfigDefaults = Config.extend({
 test.beforeEach(t => {
   t.context.configUtil = proxyquire('~/config', {
     confugu: {
-      load: sinon.stub().resolves({})
+      loadSync: sinon.stub().resolves({})
     }
   })
 })
@@ -33,27 +33,29 @@ test('should register config when called', t => {
     colors: false
   })
 
-  t.context.configUtil.loadSync({ config })
+  t.context.configUtil.load({ config })
 
   t.deepEqual(config.clean(), {
-    colors: false
+    colors: false,
+    environment: 'localhost'
   })
 })
 
 test('should apply defaults to a model that has the defaults mixin', t => {
   const config = new ConfigDefaults()
 
-  t.context.configUtil.loadSync({ config })
+  t.context.configUtil.load({ config })
 
   t.deepEqual(config.clean(), {
-    colors: true
+    colors: true,
+    environment: 'localhost'
   })
 })
 
 test('should allow passing array of overrides', t => {
   const config = new ConfigDefaults()
 
-  t.context.configUtil.loadSync({
+  t.context.configUtil.load({
     config,
     overrides: [
       {
@@ -74,7 +76,7 @@ test('should allow passing array of overrides', t => {
 test('should enforce overrides being undefined or array', t => {
   const config = new ConfigDefaults()
   const thrownError = t.throws(() => {
-    t.context.configUtil.loadSync({
+    t.context.configUtil.load({
       config,
       path: 'tomorrowland/2018/is/happening',
       overrides: { this: 'shouldFail' }
@@ -86,7 +88,7 @@ test('should enforce overrides being undefined or array', t => {
 
 test('should allow config directory to be omitted', t => {
   const config = new ConfigDefaults()
-  t.context.configUtil.loadSync({ config, overrides: [ { colors: true } ] })
+  t.context.configUtil.load({ config, overrides: [ { colors: true } ] })
   t.pass()
 })
 
