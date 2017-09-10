@@ -16,7 +16,9 @@ function printConfig (config) {
   console.log('\n')
 }
 
-function applyOverrides (config, allOverrides, overrides) {
+function applyOverrides ({ config, env, allOverrides, overrides }) {
+  config.setEnvironment(env)
+
   if (overrides) {
     Object.assign(allOverrides, ...overrides)
   }
@@ -31,7 +33,7 @@ function applyOverrides (config, allOverrides, overrides) {
   return config
 }
 
-function getOverrideFilePath (config, overridePath) {
+function getEnvironment () {
   const serviceEnv = BaseServiceConfig.getServiceEnvironment()
   let env
 
@@ -48,7 +50,10 @@ function getOverrideFilePath (config, overridePath) {
     env = Environment.LOCALHOST.name().toLowerCase()
   }
 
-  config.setEnvironment(env)
+  return env
+}
+
+function getOverrideFilePath (env, overridePath) {
   return path.join(overridePath, `${env}.yml`)
 }
 
@@ -77,12 +82,15 @@ exports.load = async function load ({ config, path: overridePath, overrides }) {
     config.applyDefaults()
   }
 
+  const env = getEnvironment()
+
   let allOverrides = {}
   if (overridePath) {
-    allOverrides = await confugu.load(getOverrideFilePath(config, overridePath))
+    allOverrides = await confugu.load(
+      getOverrideFilePath(env, overridePath))
   }
 
-  return applyOverrides(config, allOverrides, overrides)
+  return applyOverrides({ config, env, allOverrides, overrides })
 }
 
 /**
@@ -110,10 +118,13 @@ exports.loadSync = function loadSync ({ config, path: overridePath, overrides })
     config.applyDefaults()
   }
 
+  const env = getEnvironment()
+
   let allOverrides = {}
   if (overridePath) {
-    allOverrides = confugu.loadSync(getOverrideFilePath(config, overridePath))
+    allOverrides = confugu.loadSync(
+      getOverrideFilePath(env, overridePath))
   }
 
-  return applyOverrides(config, allOverrides, overrides)
+  return applyOverrides({ config, env, allOverrides, overrides })
 }

@@ -36,7 +36,8 @@ test('should register config when called', t => {
   t.context.configUtil.loadSync({ config })
 
   t.deepEqual(config.clean(), {
-    colors: false
+    colors: false,
+    environment: 'localhost'
   })
 })
 
@@ -46,7 +47,8 @@ test('should apply defaults to a model that has the defaults mixin', t => {
   t.context.configUtil.loadSync({ config })
 
   t.deepEqual(config.clean(), {
-    colors: true
+    colors: true,
+    environment: 'localhost'
   })
 })
 

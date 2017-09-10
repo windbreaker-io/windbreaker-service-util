@@ -1,1 +1,2 @@
 loggingColorsEnabled: false
+logLevel: ${LOG_LEVEL}

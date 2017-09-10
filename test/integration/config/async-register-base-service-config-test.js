@@ -75,7 +75,7 @@ test('should load default localhost config file when calling "load"', async t =>
 test('should load overrides file and inject env vars when calling "load"', async t => {
   const config = new BaseServiceConfig()
   process.env.SERVICE_ENVIRONMENT = 'production'
-  process.env.LOGGING_COLORS_ENABLED = false
+  process.env.LOG_LEVEL = 'trace'
 
   await configUtil.load({
     config,
@@ -83,7 +83,7 @@ test('should load overrides file and inject env vars when calling "load"', async
   })
 
   t.deepEqual(config.clean(), {
-    logLevel: 'INFO',
+    logLevel: 'TRACE',
     environment: 'PRODUCTION',
     loggingColorsEnabled: false
   })
