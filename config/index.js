@@ -74,43 +74,7 @@ function getOverrideFilePath (env, overridePath) {
 *    ]
 *
 */
-exports.load = async function load ({ config, path: overridePath, overrides }) {
-  assert(!overrides || Array.isArray(overrides),
-    'if present, overrides must be an array')
-
-  if (config.applyDefaults) {
-    config.applyDefaults()
-  }
-
-  const env = getEnvironment()
-
-  let allOverrides = {}
-  if (overridePath) {
-    allOverrides = await confugu.load(
-      getOverrideFilePath(env, overridePath))
-  }
-
-  return applyOverrides({ config, env, allOverrides, overrides })
-}
-
-/**
-* Service environment env variable must be set to load non-default config file.
-*
-* @param obj.config {Config} - Instance of the `Config` model
-* @param obj.path {string} - Absolute path to config directory
-* @param obj.overrides {Object[]} - Array of objects where the keys are the `Config`
-*    model property keys and the values are the corresponding values to that key.
-*    Useful for passing the values of files and values from process.argv
-*
-*    e.g.
-*
-*    [
-*      { environment: 'PRODUCTION' }
-*      { logLevel: 'debug' },
-*    ]
-*
-*/
-exports.loadSync = function loadSync ({ config, path: overridePath, overrides }) {
+exports.load = function loadSync ({ config, path: overridePath, overrides }) {
   assert(!overrides || Array.isArray(overrides),
     'if present, overrides must be an array')
 
