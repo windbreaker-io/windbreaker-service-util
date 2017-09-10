@@ -1,5 +1,3 @@
-require('require-self-ref')
-
 const test = require('ava')
 const msgpack = require('msgpack-lite')
 const messageParser = require('~/queue/util/message-parser')

@@ -1,8 +1,6 @@
 /**
  * QueueConsumer integration test
  */
-require('require-self-ref')
-
 const test = require('ava')
 const uuid = require('uuid')
 const amqplib = require('amqplib')

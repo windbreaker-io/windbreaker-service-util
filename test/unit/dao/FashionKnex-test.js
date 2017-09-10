@@ -1,5 +1,3 @@
-require('require-self-ref')
-
 const test = require('ava')
 const sinon = require('sinon')
 const mockKnex = require('~/test/util/mocks/MockKnex')
