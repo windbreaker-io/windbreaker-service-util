@@ -14,9 +14,10 @@ module.exports = require('../Model').extend({
       default: false
     },
     migrations: {
-      tableName: {
-        description: 'The database table name for running migrations',
-        default: 'migrations'
+      type: Object,
+      description: 'Migrations config object',
+      default: {
+        tableName: 'migrations'
       }
     }
   }
