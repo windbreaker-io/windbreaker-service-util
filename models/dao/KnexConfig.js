@@ -12,6 +12,12 @@ module.exports = require('../Model').extend({
       type: Boolean,
       description: 'Run Knex in debug mode',
       default: false
+    },
+    migrations: {
+      tableName: {
+        description: 'The database table name for running migrations',
+        default: 'migrations'
+      }
     }
   }
 })
