@@ -7,13 +7,8 @@ const Environment = require('~/models/Environment')
 const path = require('path')
 
 function printConfig (config) {
-  // print config values
   console.log('Config values:')
-  const configObj = config.clean()
-  for (const key in configObj) {
-    console.log(`  ${key}: ${configObj[key]}`)
-  }
-  console.log('\n')
+  console.log(JSON.stringify(config.clean(), null, 2), '\n')
 }
 
 function applyOverrides ({ config, env, allOverrides, overrides }) {
