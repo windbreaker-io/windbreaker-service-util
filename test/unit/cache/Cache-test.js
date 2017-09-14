@@ -290,3 +290,61 @@ test('should allow creating Cache using RedisClusterNodeConfig model', (t) => {
 
   t.deepEqual(cache._nodes, TEST_NODES)
 })
+
+test('should pass a model cleaned nodes array to _createRedisClient', (t) => {
+  const { sandbox } = t.context
+
+  const mockClient = new MockRedisClient()
+  const createRedisClientStub = sandbox.stub().returns(mockClient)
+
+  const Cache = proxyquire('~/cache/Cache', {
+    './util/createRedisClient': createRedisClientStub
+  })
+
+  const nodes = []
+
+  TEST_NODES.forEach((node) => {
+    nodes.push(new RedisClusterNodeConfig(node))
+  })
+
+  let cache = new Cache({
+    nodes,
+    logger: console,
+    defaultTtl: TEST_TTL
+  })
+
+  // createRedisClientStub should be called with an array with each value being
+  // the Model.clean(...) output
+  sinon.assert.calledWith(createRedisClientStub, TEST_NODES)
+
+  t.deepEqual(cache._nodes, TEST_NODES)
+})
+
+test('should pass redisClientOptions to _createRedisClient', (t) => {
+  const { sandbox } = t.context
+
+  const mockClient = new MockRedisClient()
+  const createRedisClientStub = sandbox.stub().returns(mockClient)
+
+  const Cache = proxyquire('~/cache/Cache', {
+    './util/createRedisClient': createRedisClientStub
+  })
+
+  const redisClientOptions = {
+    maxDelay: 1000,
+    redisOptions: {
+      password: 'test'
+    }
+  }
+
+  let cache = new Cache({
+    nodes: TEST_NODES,
+    logger: console,
+    defaultTtl: TEST_TTL,
+    redisClientOptions
+  })
+
+  sinon.assert.calledWith(createRedisClientStub, TEST_NODES, redisClientOptions)
+
+  t.deepEqual(cache._nodes, TEST_NODES)
+})
