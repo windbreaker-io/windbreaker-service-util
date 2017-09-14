@@ -21,7 +21,7 @@ class Cache extends EventEmitter {
     this._nodes = _getCleanArray(nodes)
 
     const redisClient = this._redisClient =
-      _createRedisClient(nodes, redisClientOptions)
+      _createRedisClient(this._nodes, redisClientOptions)
 
     // forward events to clients so that they
     // can handle situations appropriately
