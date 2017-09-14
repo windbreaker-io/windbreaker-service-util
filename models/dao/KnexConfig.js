@@ -1,4 +1,5 @@
 const KnexConnection = require('./KnexConnection')
+const KnexMigrations = require('./KnexMigrations')
 
 module.exports = require('../Model').extend({
   properties: {
@@ -13,12 +14,6 @@ module.exports = require('../Model').extend({
       description: 'Run Knex in debug mode',
       default: false
     },
-    migrations: {
-      type: Object,
-      description: 'Migrations config object',
-      default: {
-        tableName: 'migrations'
-      }
-    }
+    migrations: KnexMigrations
   }
 })
