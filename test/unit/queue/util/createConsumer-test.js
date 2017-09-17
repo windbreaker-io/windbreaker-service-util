@@ -1,6 +1,7 @@
 const test = require('ava')
 const sinon = require('sinon')
 const proxyquire = require('proxyquire')
+const conflogger = require('conflogger')
 proxyquire.noPreserveCache()
 
 const tri = require('tri')
@@ -21,6 +22,8 @@ const testMessage = new Event({
     compare: 'abc123'
   }
 })
+
+const testMessageCleaned = testMessage.clean()
 
 const encodedMessage = messageParser.encode(testMessage)
 
@@ -189,6 +192,87 @@ test('should acknowledge a message if consumer receives a message', async (t) =>
   await tri(async () => {
     return spy.calledWith(message)
   }, { maxAttempts: 2, delay: 100 })
+
+  t.pass()
+})
+
+test('should receive a message with converted data in onMessage', async (t) => {
+  const { sandbox, connection } = t.context
+
+  const spy = sandbox.spy()
+
+  const consumer = await createConsumer({
+    amqUrl: TEST_AMQ_URL,
+    logger: console,
+    onMessage: sandbox.spy(),
+    consumerOptions: {
+      queueName: TEST_QUEUE_NAME,
+      connection
+    }
+  })
+
+  const message = {
+    content: encodedMessage
+  }
+
+  consumer.emit('message', message)
+
+  await tri(async () => {
+    let calledWith = spy.calledWith(message)
+    if (calledWith) {
+      const receivedMessage = spy.firstCall.args[0]
+      const receivedMessageCleaned = testMessage.clean()
+
+      t.deepEqual(receivedMessageCleaned, testMessage.clean())
+      t.is(receivedMessage.getData().getCompare(), 'abc123')
+      t.deepEqual(receivedMessage.getData().clean(), testMessageCleaned.data)
+    }
+    return calledWith
+  }, { maxAttempts: 2, delay: 100 })
+
+  t.pass()
+})
+
+test('should log error and exit early if message decoding fails', async (t) => {
+  const { sandbox, connection } = t.context
+
+  const loggerErrorSpy = sandbox.spy()
+
+  const createConsumer = proxyquire('~/queue/util/createConsumer', {
+    './message-parser': {
+      decode: function () {
+        throw new Error('Decode error!')
+      }
+    }
+  })
+
+  const logger = conflogger.configure({
+    error: loggerErrorSpy
+  })
+
+  const consumer = await createConsumer({
+    amqUrl: TEST_AMQ_URL,
+    logger,
+    onMessage () {
+      t.fail()
+    },
+    consumerOptions: {
+      queueName: TEST_QUEUE_NAME,
+      connection
+    }
+  })
+
+  const message = {
+    content: encodedMessage
+  }
+
+  consumer.emit('message', message)
+
+  await tri(async () => {
+    if (!loggerErrorSpy.calledWith('Error decoding message: ')) {
+      throw new Error('Not called with proper error')
+    }
+  }, { maxAttempts: 5, delay: 100 })
 
   t.pass()
 })

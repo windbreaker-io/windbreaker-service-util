@@ -22,6 +22,8 @@ const testMessage = new Event({
   }
 })
 
+const testMessageCleaned = testMessage.clean()
+
 test.beforeEach('initialize producer', async (t) => {
   const queueName = `queue-${uuid.v4()}`
   const connection = await amqplib.connect(AMQ_URL)
@@ -85,7 +87,11 @@ test('should be able to handle incoming message from a producer', async (t) => {
   sinon.assert.calledOnce(spy)
 
   const receivedMessage = spy.firstCall.args[0]
-  t.deepEqual(receivedMessage.clean(), testMessage.clean())
+  const receivedMessageCleaned = testMessage.clean()
+
+  t.deepEqual(receivedMessageCleaned, testMessage.clean())
+  t.is(receivedMessage.getData().getCompare(), 'abc123')
+  t.deepEqual(receivedMessage.getData().clean(), testMessageCleaned.data)
 
   let errors = []
   receivedMessage.convertData(errors)

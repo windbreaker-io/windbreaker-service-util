@@ -21,6 +21,8 @@ const testMessage = new Event({
   }
 })
 
+testMessage.convertData()
+
 function isEncodedMessage (t, message, testMessage) {
   return typeof t.deepEqual(messageParser.decode(message.content), testMessage) === 'undefined'
 }
