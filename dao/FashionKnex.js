@@ -2,6 +2,7 @@ const knex = require('knex')
 const Model = require('fashion-model/Model')
 const conflogger = require('conflogger')
 const _getTableName = require('./util/getTableName')
+const getCleanArray = require('~/models/util/getCleanArray')
 
 function _clean (document) {
   return document && Model.isModel(document)
@@ -54,7 +55,7 @@ class FashionKnex {
   }
 
   async batchInsert (data, {returning = '*'} = {}) {
-    const dataArray = data.map(row => _clean(row))
+    const dataArray = getCleanArray(data)
 
     return this._knex
       .batchInsert(this._tableName, dataArray)
