@@ -27,35 +27,66 @@ class FashionKnex {
     this._knex = knexConnection || knex(knexConfig)
   }
 
-  async insert (data, returning) {
+  /**
+   * TODO: replace with https://github.com/tgriesser/knex/pull/2197 after new
+   * and improved implementation is submitted
+   * Ref: https://gist.github.com/plurch/118721c2216f77640232
+   * http://www.postgresql.org/docs/9.5/static/sql-insert.html
+   */
+  async upsert (data, {conflictColumn = 'id', returning = '*'} = {}) {
     data = _clean(data)
-    returning = returning || '*'
 
-    let result
+    const insertString = this._knex
+      .insert(data)
+      .into(this._tableName)
+      .toString()
+    const conflictString = this._knex.raw(` ON CONFLICT (??) DO NOTHING`,
+      conflictColumn).toString()
+    const query = (insertString + conflictString + ` RETURNING ${returning}`)
+      .replace(/\?/g, '\\?')
 
-    try {
-      result = await this._knex
-        .insert(data, 'id')
-        .into(this._tableName)
-        .returning(returning)
-    } catch (err) {
-      const stringified = JSON.stringify(data)
-      this._logger.error(`Error inserting data "${stringified}"`, err)
-      throw err
-    }
-    return result
+    return this._knex.raw(query)
+      .then(result => result.rows[0]) // rows is an empty array if pre-existing
+      .catch(err => {
+        this._logger.error('Error during upsert', err)
+        throw err
+      })
   }
 
-  async findById (id, toReturn) {
+  async batchInsert (data, {returning = '*'} = {}) {
+    const dataArray = data.map(row => _clean(row))
+
+    return this._knex
+      .batchInsert(this._tableName, dataArray)
+      .returning(returning)
+      .catch(err => {
+        this._logger.error('Error during batch insert', err)
+        throw err
+      })
+  }
+
+  async insert (data, {returning = '*'} = {}) {
+    data = _clean(data)
+
+    return this._knex
+      .insert(data, 'id')
+      .into(this._tableName)
+      .returning(returning)
+      .catch((err) => {
+        this._logger.error(`Error inserting data "${JSON.stringify(data)}"`, err)
+        throw err
+      })
+  }
+
+  async findById (id, {select = '*'} = {}) {
     const tableName = this._tableName
 
-    toReturn = toReturn || '*'
     let wrapped
     let result
 
     try {
       result = await this._knex
-        .select(toReturn)
+        .select(select)
         .from(tableName)
         .where('id', id)
         .limit(1)

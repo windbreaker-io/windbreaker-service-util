@@ -15,7 +15,7 @@ services:
     environment:
       POSTGRES_USER: 'postgres'
       POSTGRES_PASSWORD: 'postgres'
-      POSTGRES_DB: 'windbreaker'
+      POSTGRES_DB: 'windbreaker_service_util'
     ports:
       - '5432'
   rediscluster:
@@ -27,4 +27,3 @@ services:
     image: 'rabbitmq:3.6.10-alpine'
     ports:
       - '5672'
-

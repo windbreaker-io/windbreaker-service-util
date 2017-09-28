@@ -7,6 +7,14 @@ class MockKnex {
     return this
   }
 
+  batchInsert () {
+    return this
+  }
+
+  raw () {
+    return this
+  }
+
   into () {
     return this
   }

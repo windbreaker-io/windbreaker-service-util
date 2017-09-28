@@ -11,13 +11,25 @@ async function prepareDatabase (daoHelper) {
   const knex = daoHelper.getKnex()
   const tableName = daoHelper.getTableName()
 
+  // createTableIfNotExists still runs .primary() call and leads to pkey
+  // error if the table already exists. Use hasTable/check explicitly to avoid err
   return knex
     .schema
-    .createTableIfNotExists(tableName, (table) => {
-      table.string('id').primary()
-      table.string('type')
-      table.string('name')
+    .hasTable(tableName)
+    .then(exists => {
+      if (exists) {
+        return
+      }
+      return knex.schema.createTable(tableName, (table) => {
+        table.string('id').primary()
+        table.string('type')
+        table.string('name')
+      })
     })
+}
+
+function pick ({id, type, name}) {
+  return {id, type, name}
 }
 
 test.before('initialize database', async (t) => {
@@ -30,7 +42,7 @@ test.before('initialize database', async (t) => {
         host: 'postgres',
         user: 'postgres',
         password: 'postgres',
-        database: 'windbreaker'
+        database: 'windbreaker_service_util'
       },
       debug: true
     }
@@ -50,7 +62,7 @@ test('should allow passing KnexConfig model', async (t) => {
       host: 'postgres',
       user: 'postgres',
       password: 'postgres',
-      database: 'windbreaker'
+      database: 'windbreaker_service_util'
     },
     debug: true
   })
@@ -111,6 +123,50 @@ test('should insert raw data into database', async (t) => {
   t.is(data.type, entity.type)
 })
 
+test('should batch insert into database', async (t) => {
+  const id1 = uuid.v4()
+  const name1 = 'Souma'
+  const id2 = uuid.v4()
+  const name2 = 'Kun'
+
+  const entity1 = new TestEntity({
+    id: id1,
+    type: 'GITHUB',
+    name: name1
+  })
+  const entity2 = new TestEntity({
+    id: id2,
+    type: 'BITBUCKET',
+    name: name2
+  })
+
+  const [data1, data2] = await daoHelper.batchInsert([entity1, entity2])
+
+  t.deepEqual(pick(data1), entity1.clean())
+  t.deepEqual(pick(data2), entity2.clean())
+})
+
+test('should upsert into database - insert then do nothing', async (t) => {
+  const id = uuid.v4()
+  const name = 'Souma'
+
+  const entity = new TestEntity({
+    id: id,
+    type: 'GITHUB',
+    name: name
+  })
+
+  let data = await daoHelper.upsert(entity)
+
+  t.deepEqual(pick(data), entity.clean())
+
+  data = await daoHelper.upsert(entity)
+  t.is(data, undefined)
+
+  data = await daoHelper.findById(id)
+  t.deepEqual(data.clean(), entity.clean())
+})
+
 test('should generate id without passing', async (t) => {
   const entity = new TestEntity({
     type: 'GITHUB'
@@ -129,7 +185,7 @@ test('should only return inserted data requested if "returning" supplied', async
     type: 'GITHUB'
   })
 
-  const res = await daoHelper.insert(entity, 'type')
+  const res = await daoHelper.insert(entity, {returning: 'type'})
   const data = res[0]
   t.is(data, 'GITHUB')
 })

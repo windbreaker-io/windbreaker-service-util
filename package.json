@@ -72,6 +72,8 @@
     "sinon": "^2.3.5"
   },
   "ava": {
-    "require": [ "require-self-ref" ]
+    "require": [
+      "require-self-ref"
+    ]
   }
 }
