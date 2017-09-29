@@ -46,12 +46,13 @@ class FashionKnex {
     const query = (insertString + conflictString + ` RETURNING ${returning}`)
       .replace(/\?/g, '\\?')
 
-    return this._knex.raw(query)
-      .then(result => result.rows[0]) // rows is an empty array if pre-existing
-      .catch(err => {
-        this._logger.error('Error during upsert', err)
-        throw err
-      })
+    try {
+      const result = await this._knex.raw(query)
+      return result.rows[0] // undefined if row already exists in table
+    } catch (err) {
+      this._logger.error('Error during upsert', err)
+      throw err
+    }
   }
 
   async batchInsert (data, {returning = '*'} = {}) {
