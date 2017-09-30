@@ -16,25 +16,29 @@ const TEST_QUEUE_NAME = 'test-queue-name'
 
 const createConsumer = require('~/queue/util/createConsumer')
 
-const testMessage = new Event({
-  type: 'github-push',
-  data: {
-    compare: 'abc123'
-  }
-})
-
-const testMessageCleaned = testMessage.clean()
-
-const encodedMessage = messageParser.encode(testMessage)
-
 test.beforeEach((t) => {
+  const testMessage = new Event({
+    type: 'github-push',
+    data: {
+      compare: 'abc123'
+    }
+  })
+
+  const testMessageCleaned = testMessage.clean()
+  const encodedMessage = messageParser.encode(testMessage)
+  const decodedMessage = messageParser.decode(encodedMessage)
+
   const channel = new MockChannel()
   const connection = new MockConnection(channel)
 
   t.context = {
     sandbox: sinon.sandbox.create(),
     channel,
-    connection
+    connection,
+    testMessage,
+    testMessageCleaned,
+    encodedMessage,
+    decodedMessage
   }
 })
 
@@ -169,7 +173,7 @@ test('should cause consumer to stop if a connection error happens', async (t) =>
 })
 
 test('should acknowledge a message if consumer receives a message', async (t) => {
-  const { sandbox, connection } = t.context
+  const { sandbox, connection, encodedMessage } = t.context
 
   const consumer = await createConsumer({
     amqUrl: TEST_AMQ_URL,
@@ -197,14 +201,21 @@ test('should acknowledge a message if consumer receives a message', async (t) =>
 })
 
 test('should receive a message with converted data in onMessage', async (t) => {
-  const { sandbox, connection } = t.context
+  const {
+    sandbox,
+    connection,
+    testMessage,
+    testMessageCleaned,
+    encodedMessage,
+    decodedMessage
+  } = t.context
 
   const spy = sandbox.spy()
 
   const consumer = await createConsumer({
     amqUrl: TEST_AMQ_URL,
     logger: console,
-    onMessage: sandbox.spy(),
+    onMessage: spy,
     consumerOptions: {
       queueName: TEST_QUEUE_NAME,
       connection
@@ -218,23 +229,21 @@ test('should receive a message with converted data in onMessage', async (t) => {
   consumer.emit('message', message)
 
   await tri(async () => {
-    let calledWith = spy.calledWith(message)
-    if (calledWith) {
-      const receivedMessage = spy.firstCall.args[0]
-      const receivedMessageCleaned = testMessage.clean()
+    sinon.assert.calledWith(spy, decodedMessage)
 
-      t.deepEqual(receivedMessageCleaned, testMessage.clean())
-      t.is(receivedMessage.getData().getCompare(), 'abc123')
-      t.deepEqual(receivedMessage.getData().clean(), testMessageCleaned.data)
-    }
-    return calledWith
+    const receivedMessage = spy.firstCall.args[0]
+    const receivedMessageCleaned = receivedMessage.clean()
+
+    t.deepEqual(receivedMessageCleaned, testMessage.clean())
+    t.is(receivedMessage.getData().getCompare(), 'abc123')
+    t.deepEqual(receivedMessage.getData().clean(), testMessageCleaned.data)
   }, { maxAttempts: 2, delay: 100 })
 
   t.pass()
 })
 
 test('should log error and exit early if message decoding fails', async (t) => {
-  const { sandbox, connection } = t.context
+  const { sandbox, connection, encodedMessage } = t.context
 
   const loggerErrorSpy = sandbox.spy()
 
@@ -279,7 +288,7 @@ test('should log error and exit early if message decoding fails', async (t) => {
 
 test('should reject a message if consumer receives a ' +
 'message but errors out', async (t) => {
-  const { sandbox, connection } = t.context
+  const { sandbox, connection, encodedMessage } = t.context
   let errorReceived
 
   const consumer = await createConsumer({
