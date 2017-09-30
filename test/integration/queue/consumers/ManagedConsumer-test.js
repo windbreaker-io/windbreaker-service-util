@@ -15,14 +15,14 @@ const waitForEvent = require('~/test/util/waitForEvent')
 
 const AMQ_URL = 'amqp:rabbitmq'
 
-const testMessage = new Event({
-  type: 'github-push',
-  data: {
-    compare: 'abc123'
-  }
-})
-
 test.beforeEach('initialize producer', async (t) => {
+  const testMessage = new Event({
+    type: 'github-push',
+    data: {
+      compare: 'abc123'
+    }
+  })
+
   const queueName = `queue-${uuid.v4()}`
   const connection = await amqplib.connect(AMQ_URL)
 
@@ -35,6 +35,7 @@ test.beforeEach('initialize producer', async (t) => {
   await producer.start()
 
   t.context = {
+    testMessage,
     queueName,
     producer,
     connection
@@ -60,8 +61,9 @@ test.afterEach.always('ensure consumer teardown', async (t) => {
 })
 
 test('should be able to handle incoming message from a producer', async (t) => {
-  const { queueName, producer } = t.context
+  const { queueName, producer, testMessage } = t.context
 
+  const testMessageCleaned = testMessage.clean()
   const spy = sinon.spy()
 
   const managedConsumer = await createManagedConsumer({
@@ -85,7 +87,11 @@ test('should be able to handle incoming message from a producer', async (t) => {
   sinon.assert.calledOnce(spy)
 
   const receivedMessage = spy.firstCall.args[0]
-  t.deepEqual(receivedMessage.clean(), testMessage.clean())
+  const receivedMessageCleaned = receivedMessage.clean()
+
+  t.deepEqual(receivedMessageCleaned, testMessage.clean())
+  t.is(receivedMessage.getData().getCompare(), 'abc123')
+  t.deepEqual(receivedMessage.getData().clean(), testMessageCleaned.data)
 
   let errors = []
   receivedMessage.convertData(errors)

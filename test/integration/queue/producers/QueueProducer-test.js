@@ -14,18 +14,19 @@ const waitForEvent = require('~/test/util/waitForEvent')
 
 const AMQ_URL = 'amqp://rabbitmq'
 
-const testMessage = new Event({
-  type: 'github-push',
-  data: {
-    compare: 'abc123'
-  }
-})
-
 function isEncodedMessage (t, message, testMessage) {
+  testMessage.convertData()
   return typeof t.deepEqual(messageParser.decode(message.content), testMessage) === 'undefined'
 }
 
 test.beforeEach('initialize connection and channel', async (t) => {
+  const testMessage = new Event({
+    type: 'github-push',
+    data: {
+      compare: 'abc123'
+    }
+  })
+
   const queueName = `queue-${uuid.v4()}`
   const consumerConnection = await amqplib.connect(AMQ_URL)
   const producerConnection = await amqplib.connect(AMQ_URL)
@@ -50,6 +51,7 @@ test.beforeEach('initialize connection and channel', async (t) => {
   await producer.start()
 
   t.context = {
+    testMessage,
     queueName,
     consumerConnection,
     producerConnection,
@@ -74,7 +76,7 @@ test.afterEach('clean up connection and channel', async (t) => {
 })
 
 test('should be able to receive messages published on the queue', async (t) => {
-  const { consumer, producer } = t.context
+  const { consumer, producer, testMessage } = t.context
 
   await Promise.all([
     waitForEvent(consumer, 'message', (message) => {
@@ -87,7 +89,7 @@ test('should be able to receive messages published on the queue', async (t) => {
 })
 
 test('should be able to acknowledge a message sent by producer', async (t) => {
-  const { consumer, producer } = t.context
+  const { consumer, producer, testMessage } = t.context
 
   await producer.sendMessage(testMessage)
   const message = await waitForEvent(consumer, 'message')
@@ -98,7 +100,7 @@ test('should be able to acknowledge a message sent by producer', async (t) => {
 })
 
 test('should be able to reject a message and receive it again', async (t) => {
-  const { producer, consumer } = t.context
+  const { producer, consumer, testMessage } = t.context
 
   await producer.sendMessage(testMessage)
   const message = await waitForEvent(consumer, 'message', (message) => {

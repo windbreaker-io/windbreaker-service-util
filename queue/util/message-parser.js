@@ -28,5 +28,14 @@ exports.decode = function (message) {
     throw new Error(`Error decoding event. Errors: "${errors.join(',')}"`)
   }
 
+  const convertDataErrors = []
+
+  // Convert the event's "data" property back to its orignal model type
+  event.convertData(convertDataErrors)
+
+  if (convertDataErrors.length) {
+    throw new Error(`Error converting data from decode: "${convertDataErrors.join(',')}"`)
+  }
+
   return event
 }

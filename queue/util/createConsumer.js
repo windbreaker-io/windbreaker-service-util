@@ -38,9 +38,18 @@ module.exports = async function (options) {
   }, consumerOptions))
 
   consumer.on('message', async (message) => {
-    try {
-      const content = messageParser.decode(message.content)
+    let content
 
+    try {
+      content = messageParser.decode(message.content)
+    } catch (err) {
+      // We should not try to requeue the message if it failed to be decoded
+      // because it will never be able to properly decode
+      logger.error('Error decoding message: ', err)
+      return
+    }
+
+    try {
       await onMessage(content)
       // acknowledge the message on success
       await consumer.acknowledgeMessage(message)
