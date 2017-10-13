@@ -2,6 +2,7 @@ const { test } = require('ava')
 const proxyquire = require('proxyquire')
 const sinon = require('sinon')
 const DefaultsMixin = require('fashion-model-defaults')
+const Model = require('~/models/Model')
 
 const configOptions = {
   properties: {
@@ -13,9 +14,20 @@ const configOptions = {
   }
 }
 
-const Config = require('~/models/Model').extend(configOptions)
+const Config = Model.extend(configOptions)
 const ConfigDefaults = Config.extend({
   mixins: [DefaultsMixin]
+})
+const ConfigDefaultsThrow = Config.extend({
+  mixins: [DefaultsMixin],
+  properties: {
+    property: {
+      type: String,
+      default: function () {
+        throw new Error('arrrr!')
+      }
+    }
+  }
 })
 
 test.beforeEach(t => {
@@ -24,6 +36,21 @@ test.beforeEach(t => {
       loadSync: sinon.stub().resolves({})
     }
   })
+})
+
+test('should not call default function if config propety is provided', t => {
+  const config = new ConfigDefaultsThrow({
+    property: 'matey'
+  })
+  t.context.configUtil.load({ config })
+  t.pass()
+})
+
+test('should call default function if config property is not provided', t => {
+  const config = new ConfigDefaultsThrow()
+  t.throws(() => {
+    t.context.configUtil.load({ config })
+  }, 'arrrr!')
 })
 
 test('should register config when called', t => {
