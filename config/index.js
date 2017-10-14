@@ -73,10 +73,6 @@ exports.load = function loadSync ({ config, path: overridePath, overrides }) {
   assert(!overrides || Array.isArray(overrides),
     'if present, overrides must be an array')
 
-  if (config.applyDefaults) {
-    config.applyDefaults()
-  }
-
   const env = getEnvironment()
 
   let allOverrides = {}
@@ -85,5 +81,9 @@ exports.load = function loadSync ({ config, path: overridePath, overrides }) {
       getOverrideFilePath(env, overridePath))
   }
 
-  return applyOverrides({ config, env, allOverrides, overrides })
+  applyOverrides({ config, env, allOverrides, overrides })
+
+  if (config.applyDefaults) {
+    config.applyDefaults()
+  }
 }
