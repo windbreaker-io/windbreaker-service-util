@@ -1,5 +1,5 @@
-const Model = require('~/models/Model')
-const Enum = require('~/models/Enum')
+const Model = require('../../../../models/Model')
+const Enum = require('../../../../models/Enum')
 
 // TODO: trim this down. Possibly abstract if other repo flows allow it.
 const Installation = Model.extend({

@@ -2,7 +2,7 @@ const knex = require('knex')
 const Model = require('fashion-model/Model')
 const conflogger = require('conflogger')
 const _getTableName = require('./util/getTableName')
-const getCleanArray = require('~/models/util/getCleanArray')
+const getCleanArray = require('../models/util/getCleanArray')
 
 function _clean (document) {
   return document && Model.isModel(document)

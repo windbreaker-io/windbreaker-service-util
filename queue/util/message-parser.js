@@ -1,6 +1,6 @@
 const msgpack = require('msgpack-lite')
-const Model = require('~/models/Model')
-const Event = require('~/models/events/Event')
+const Model = require('../../models/Model')
+const Event = require('../../models/events/Event')
 
 /**
 * Encode an object or a fashion-model

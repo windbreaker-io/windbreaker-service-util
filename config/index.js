@@ -2,8 +2,8 @@ require('require-self-ref')
 
 const assert = require('assert')
 const confugu = require('confugu')
-const BaseServiceConfig = require('~/models/BaseServiceConfig')
-const Environment = require('~/models/Environment')
+const BaseServiceConfig = require('../models/BaseServiceConfig')
+const Environment = require('../models/Environment')
 const path = require('path')
 
 function printConfig (config) {
