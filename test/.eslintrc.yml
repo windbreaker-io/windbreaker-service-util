@@ -1,2 +1,6 @@
 env:
   mocha: true
+plugins:
+  - no-require-self-ref
+rules:
+  no-require-self-ref/no-require-self-ref: off 
