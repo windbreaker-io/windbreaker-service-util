@@ -1,2 +1,6 @@
 extends:
   - standard
+plugins:
+  - no-require-self-ref
+rules:
+  no-require-self-ref/no-require-self-ref: error
