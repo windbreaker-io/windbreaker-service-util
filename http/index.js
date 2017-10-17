@@ -15,7 +15,7 @@ function registerRoute (router, route, logger) {
 * Creates a generic HTTP server
 *
 * @param options {Object}
-*  - options.routes {Object} - A route object containing { middlware, method, path, handler }
+*  - options.routes {Object[]} - A route object containing { middlware, method, path, handler }
 *  - options.httpServerPort {Number} - The port that the HTTP server should listen on
 *  - options.logger {Object}
 */
