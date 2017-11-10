@@ -202,9 +202,76 @@ test('should find by id', async (t) => {
 
   await daoHelper.insert(entity)
   const res = await daoHelper.findById(id)
+
   t.is(res.getId(), entity.getId())
   t.is(res.getName(), entity.getName())
   t.is(res.getType().name(), entity.getType().name())
+  t.deepEqual(res.clean(), entity.clean())
+})
+
+test('should find with limited array select', async (t) => {
+  const id = uuid.v4()
+  const name = 'John'
+
+  const entity = new TestEntity({
+    id,
+    type: 'GITHUB',
+    name
+  })
+
+  await daoHelper.insert(entity)
+  const res = await daoHelper.findById(id, {
+    select: ['name', 'type']
+  })
+
+  t.is(res.getId(), undefined)
+  t.is(res.getName(), entity.getName())
+  t.is(res.getType().name(), entity.getType().name())
+  t.deepEqual(res.clean(), {
+    name: entity.getName(),
+    type: entity.getType().name()
+  })
+})
+
+test('should find with limited string select', async (t) => {
+  const id = uuid.v4()
+  const name = 'John'
+
+  const entity = new TestEntity({
+    id,
+    type: 'GITHUB',
+    name
+  })
+
+  await daoHelper.insert(entity)
+  const res = await daoHelper.findById(id, {
+    select: 'name'
+  })
+
+  t.is(res.getId(), undefined)
+  t.is(res.getName(), entity.getName())
+  t.deepEqual(res.clean(), {
+    name: entity.getName()
+  })
+})
+
+test('should select * if passing options with no select property', async (t) => {
+  const id = uuid.v4()
+  const name = 'John'
+
+  const entity = new TestEntity({
+    id,
+    type: 'GITHUB',
+    name
+  })
+
+  await daoHelper.insert(entity, {})
+  const res = await daoHelper.findById(id)
+
+  t.is(res.getId(), entity.getId())
+  t.is(res.getName(), entity.getName())
+  t.is(res.getType().name(), entity.getType().name())
+  t.deepEqual(res.clean(), entity.clean())
 })
 
 test('should delete by id', async (t) => {

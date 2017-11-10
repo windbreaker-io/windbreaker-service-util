@@ -1,11 +1,10 @@
 const test = require('ava')
 const uuid = require('uuid')
 const Entity = require('~/dao/Entity')
-const assertUuid = require('~/test/util/assertUuid')
 
-test('should create id uuid if none provided', (t) => {
+test('should not create id uuid if none provided', (t) => {
   const entity = new Entity()
-  t.true(assertUuid(entity.getId()))
+  t.is(entity.getId(), undefined)
 })
 
 test('should allow passing id', (t) => {
