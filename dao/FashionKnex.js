@@ -1,4 +1,5 @@
 const knex = require('knex')
+const uuid = require('uuid')
 const Model = require('fashion-model/Model')
 const conflogger = require('conflogger')
 const _getTableName = require('./util/getTableName')
@@ -70,6 +71,9 @@ class FashionKnex {
   async insert (data, {returning = '*'} = {}) {
     data = _clean(data)
 
+    // If an id is not set upon insert, set one
+    if (!data.id) data.id = uuid.v4()
+
     return this._knex
       .insert(data, 'id')
       .into(this._tableName)
@@ -80,16 +84,29 @@ class FashionKnex {
       })
   }
 
+  /**
+  * Find a Entity by `id` in the database
+  *
+  * @param id {String} - Id to search for
+  * @param options {Object}
+  *   options.select {String|Array} - Properties to select in the query
+  */
   async findById (id, {select = '*'} = {}) {
     const tableName = this._tableName
 
-    let wrapped
     let result
 
+    if (typeof select === 'string' || typeof select === 'undefined') {
+      result = this.select(select)
+    } else if (Array.isArray(select)) {
+      result = this.select(...select)
+    } else {
+      throw new Error(`Invalid select value "${select}". The select option ` +
+        `should either be a string or an array.`)
+    }
+
     try {
-      result = await this._knex
-        .select(select)
-        .from(tableName)
+      result = await result
         .where('id', id)
         .limit(1)
     } catch (err) {
@@ -97,12 +114,28 @@ class FashionKnex {
       throw err
     }
 
-    let errors = []
+    return this.wrap(result[0])
+  }
 
-    wrapped = this._modelType.wrap(result[0], errors)
+  /**
+  * Passes through the standard knex `select` query builder using the `tableName` table
+  * http://knexjs.org/#Builder-select
+  */
+  select () {
+    return this._knex
+      .select(...arguments)
+      .from(this._tableName)
+  }
+
+  /**
+   * Wrap result of a custom query in the model type
+   */
+  async wrap (result) {
+    const errors = []
+    const wrapped = this._modelType.wrap(result, errors)
 
     if (errors.length) {
-      const stringified = JSON.stringify(result[0])
+      const stringified = JSON.stringify(result)
       throw new Error(`Error(s) while wrapping model with data "${stringified}": "${errors}"`)
     }
     return wrapped

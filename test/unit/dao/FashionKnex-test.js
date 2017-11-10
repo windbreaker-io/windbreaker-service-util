@@ -37,6 +37,14 @@ test('should throw error if finding by id results in wrapping an invalid object'
   t.is(error.message, 'Error(s) while wrapping model with data "{"type":true}": "type: Invalid value: true"')
 })
 
+test('should throw error if invalid select type passed to findById', async (t) => {
+  const { daoHelper } = t.context
+
+  let error = await t.throws(daoHelper.findById('abc123', { select: null }))
+  t.is(error.message, 'Invalid select value "null". The select option ' +
+    'should either be a string or an array.')
+})
+
 test('should throw error if find query throws error', async (t) => {
   const { daoHelper, sandbox } = t.context
 
