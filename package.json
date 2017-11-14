@@ -44,6 +44,7 @@
     "confugu": "^0.3.0",
     "fashion-model": "^5.0.19",
     "fashion-model-defaults": "^1.0.1",
+    "get-port-sync": "^1.0.0",
     "ioredis": "^3.1.1",
     "js-yaml": "^3.8.4",
     "knex": "^0.13.0",
@@ -52,6 +53,7 @@
     "koa-path-router": "^2.0.0",
     "lodash.get": "^4.4.2",
     "lodash.keys": "^4.2.0",
+    "lodash.random": "^3.2.0",
     "lodash.set": "^4.3.2",
     "lodash.union": "^4.6.0",
     "msgpack-lite": "^0.1.26",
@@ -65,7 +67,7 @@
     "eslint": "^4.1.1",
     "eslint-config-standard": "^10.2.1",
     "eslint-plugin-import": "^2.3.0",
-    "eslint-plugin-no-require-self-ref": "^1.0.1",
+    "eslint-plugin-no-require-self-ref": "^1.0.3",
     "eslint-plugin-node": "^5.0.0",
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1",
@@ -75,7 +77,7 @@
     "proxyquire": "^1.8.0",
     "require-self-ref": "^2.0.1",
     "sinon": "^2.3.5",
-    "superagent": "^3.6.3"
+    "superagent": "^3.8.1"
   },
   "ava": {
     "require": [
