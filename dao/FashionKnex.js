@@ -1,15 +1,9 @@
 const knex = require('knex')
 const uuid = require('uuid')
-const Model = require('fashion-model/Model')
 const conflogger = require('conflogger')
 const _getTableName = require('./util/getTableName')
 const getCleanArray = require('../models/util/getCleanArray')
-
-function _clean (document) {
-  return document && Model.isModel(document)
-    ? Model.clean(document)
-    : document
-}
+const cleanModel = require('../models/util/cleanModel')
 
 class FashionKnex {
   constructor (options) {
@@ -21,7 +15,7 @@ class FashionKnex {
       knexConfig
     } = options
 
-    knexConfig = _clean(knexConfig)
+    knexConfig = cleanModel(knexConfig)
 
     this._logger = conflogger.configure(logger)
     this._modelType = modelType
@@ -36,7 +30,7 @@ class FashionKnex {
    * http://www.postgresql.org/docs/9.5/static/sql-insert.html
    */
   async upsert (data, {conflictColumn = 'id', returning = '*'} = {}) {
-    data = _clean(data)
+    data = cleanModel(data)
 
     const insertString = this._knex
       .insert(data)
@@ -69,7 +63,7 @@ class FashionKnex {
   }
 
   async insert (data, {returning = '*'} = {}) {
-    data = _clean(data)
+    data = cleanModel(data)
 
     // If an id is not set upon insert, set one
     if (!data.id) data.id = uuid.v4()
