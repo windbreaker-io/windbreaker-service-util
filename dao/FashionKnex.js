@@ -124,7 +124,7 @@ class FashionKnex {
   /**
    * Wrap result of a custom query in the model type
    */
-  async wrap (result) {
+  wrap (result) {
     const errors = []
     const wrapped = this._modelType.wrap(result, errors)
 
