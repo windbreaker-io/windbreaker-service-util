@@ -1,5 +1,5 @@
-const Model = require('../../../../models/Model')
-const Enum = require('../../../../models/Enum')
+const Model = require('../../../Model')
+const Action = require('./InstallationAction')
 
 // TODO: trim this down. Possibly abstract if other repo flows allow it.
 const Installation = Model.extend({
@@ -29,19 +29,13 @@ const Repository = Model.extend({
   }
 })
 
-const Action = Enum.create({
-  values: [
-    'deleted',
-    'created'
-  ]
-})
-
 const InstallationEvent = Model.extend({
   typeName: 'github-installation',
   strict: false,
   properties: {
     action: Action,
     installation: Installation,
+    // not present if installation is being deleted
     repositories: [ Repository ],
     sender: Object
   }
